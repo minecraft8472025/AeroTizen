@@ -114,3 +114,13 @@ test("Stage is an animated WebGL background with a pure CSS fallback and a still
   assert.notEqual(swatch, stage.base, "the swatch shows a still frame, not only the fallback");
   assertPureCss(swatch, "Stage swatch");
 });
+
+test("Hokie is an animated maroon and orange background with a still swatch", () => {
+  const hokie = SCENES.find((scene) => scene.id === "hokie");
+  assert.ok(hokie, "Hokie is listed");
+  assert.equal(hokie.anim, "blobs");
+  assertPureCss(hokie.base, "Hokie base");
+  const swatch = preview(hokie);
+  assert.notEqual(swatch, hokie.base, "the swatch shows a still frame, not only the base");
+  assertPureCss(swatch, "Hokie swatch");
+});

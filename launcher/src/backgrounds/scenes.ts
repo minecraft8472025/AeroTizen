@@ -77,6 +77,12 @@ export const SCENES: readonly BackgroundScene[] = [
     base: "#040a08",
     blobs: ["rgba(60,220,170,.32)", "rgba(40,160,200,.28)", "rgba(120,230,150,.22)", "rgba(30,120,110,.35)"],
   },
+  {
+    id: "hokie",
+    anim: "blobs",
+    base: "radial-gradient(1400px 900px at 85% 120%, #5a1029 0%, rgba(90,16,41,0) 60%), #150409",
+    blobs: ["rgba(229,117,31,.45)", "rgba(134,31,65,.55)", "rgba(255,157,92,.28)", "rgba(90,16,41,.50)"],
+  },
   { id: "starfield", anim: "stars", base: "#02030a" },
   {
     id: "snow",
