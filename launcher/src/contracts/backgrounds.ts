@@ -7,7 +7,7 @@ export type BackgroundPreview =
   | { readonly kind: "solid"; readonly colour: string }
   | { readonly kind: "gradient"; readonly gradient: CustomGradient };
 
-export type ParticleKind = "snow" | "rain" | "fireflies" | "custom-snow" | "custom-rain";
+export type ParticleKind = "snow" | "rain" | "fireflies" | "theme-snow" | "theme-rain";
 
 export type BackgroundScene = Background & { readonly base: string; readonly gradient?: CustomGradient } & (
     | { readonly anim?: undefined }

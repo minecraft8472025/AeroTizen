@@ -69,8 +69,8 @@ test("Stage reports that WebGL is unavailable when the TV cannot create a WebGL 
   getContext.mockRestore();
 });
 
-test("custom waves use the active theme palette with Hokie colours in the Hokie theme", () => {
-  const scene = SCENES.find(({ id }) => id === "custom-waves")!;
+test("theme waves use the active theme palette with Hokie colours in the Hokie theme", () => {
+  const scene = SCENES.find(({ id }) => id === "theme-waves")!;
   const webGL: BackgroundGraphics = { ...createStore(true), check: vi.fn() };
   const { container } = render(
     <BackgroundSceneView scene={scene} settings={settings} speed={1} webGL={webGL} reportWebGL={vi.fn()} />,

@@ -5,13 +5,18 @@ import { normalizeColour } from "./colours";
 import { gradientBackground, normalizeGradient } from "./gradients";
 import { preview, SCENES } from "./scenes";
 
-// Saved Hokie selections are mapped to their theme-aware replacements.
+// Saved Hokie and Custom selections are mapped to their theme wallpaper IDs.
 const LEGACY_SCENE_IDS: Record<string, string> = {
-  hokie: "custom-glow",
-  "hokie-stars": "custom-stars",
-  "hokie-snow": "custom-snow",
-  "hokie-rain": "custom-rain",
-  "hokie-waves": "custom-waves",
+  hokie: "theme-glow",
+  "hokie-stars": "theme-stars",
+  "hokie-snow": "theme-snow",
+  "hokie-rain": "theme-rain",
+  "hokie-waves": "theme-waves",
+  "custom-glow": "theme-glow",
+  "custom-stars": "theme-stars",
+  "custom-snow": "theme-snow",
+  "custom-rain": "theme-rain",
+  "custom-waves": "theme-waves",
 };
 
 export interface BackgroundState {

@@ -68,7 +68,7 @@ export const BackgroundSceneView = ({ scene, settings, speed, webGL, reportWebGL
     case "stars":
       return performanceMode ? null : (
         <WebGLParticleCanvas
-          kind={scene.palette === "theme" ? "custom-stars" : "stars"}
+          kind={scene.palette === "theme" ? "theme-stars" : "stars"}
           palette={scene.palette === "theme" ? palette : undefined}
           speed={speed}
           reportWebGL={reportWebGL}
@@ -78,7 +78,7 @@ export const BackgroundSceneView = ({ scene, settings, speed, webGL, reportWebGL
       return performanceMode ? null : (
         <WebGLParticleCanvas
           kind={scene.kind}
-          palette={scene.kind === "custom-snow" || scene.kind === "custom-rain" ? palette : undefined}
+          palette={scene.kind === "theme-snow" || scene.kind === "theme-rain" ? palette : undefined}
           speed={speed}
           reportWebGL={reportWebGL}
         />

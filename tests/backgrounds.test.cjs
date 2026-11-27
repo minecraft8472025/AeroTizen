@@ -57,14 +57,19 @@ test("scene changes and speed changes render the requested background", () => {
   assert.deepEqual(calls, [[null, 1, false], ["waves", 1, false], ["black", 2, false], null]);
 });
 
-test("saved Hokie backgrounds load their theme-aware replacements", () => {
+test("saved Hokie and Custom backgrounds load their theme replacements", () => {
   const { bridge, getState, dispose } = setup();
   for (const [legacy, replacement] of Object.entries({
-    hokie: "custom-glow",
-    "hokie-stars": "custom-stars",
-    "hokie-snow": "custom-snow",
-    "hokie-rain": "custom-rain",
-    "hokie-waves": "custom-waves",
+    hokie: "theme-glow",
+    "hokie-stars": "theme-stars",
+    "hokie-snow": "theme-snow",
+    "hokie-rain": "theme-rain",
+    "hokie-waves": "theme-waves",
+    "custom-glow": "theme-glow",
+    "custom-stars": "theme-stars",
+    "custom-snow": "theme-snow",
+    "custom-rain": "theme-rain",
+    "custom-waves": "theme-waves",
   })) {
     bridge.apply(legacy);
     assert.equal(getState().current?.id, replacement, legacy);
@@ -133,13 +138,13 @@ test("Stage is an animated WebGL background with a pure CSS fallback and a still
   assertPureCss(swatch, "Stage swatch");
 });
 
-test("custom theme variants keep their animation types and have still swatches", () => {
+test("theme wallpaper variants keep their animation types and have still swatches", () => {
   const variants = {
-    "custom-glow": "blobs",
-    "custom-stars": "stars",
-    "custom-snow": "particles",
-    "custom-rain": "particles",
-    "custom-waves": "waves",
+    "theme-glow": "blobs",
+    "theme-stars": "stars",
+    "theme-snow": "particles",
+    "theme-rain": "particles",
+    "theme-waves": "waves",
   };
   for (const [id, anim] of Object.entries(variants)) {
     const scene = SCENES.find((candidate) => candidate.id === id);
@@ -156,6 +161,11 @@ test("custom theme variants keep their animation types and have still swatches",
     SCENES.some(({ id }) => id.startsWith("hokie")),
     false,
     "Hokie-only scenes are gone",
+  );
+  assert.equal(
+    SCENES.some(({ id }) => ["custom-glow", "custom-stars", "custom-snow", "custom-rain", "custom-waves"].includes(id)),
+    false,
+    "Custom-named animated scenes are gone",
   );
 });
 

@@ -17,18 +17,18 @@ const SNOW_ALPHA = "0.45 + a_style.y * 0.55";
 const FIREFLY_ALPHA = "0.15 + 0.85 * sin(u_time * 0.9 + a_style.x) * sin(u_time * 0.9 + a_style.x)";
 const ALPHA_BY_SCENE = {
   stars: STAR_ALPHA,
-  "custom-stars": STAR_ALPHA,
+  "theme-stars": STAR_ALPHA,
   nebula: STAR_ALPHA,
   snow: SNOW_ALPHA,
-  "custom-snow": SNOW_ALPHA,
+  "theme-snow": SNOW_ALPHA,
   fireflies: FIREFLY_ALPHA,
 };
 
-export type WebGLParticleKind = keyof typeof ALPHA_BY_SCENE | "rain" | "custom-rain";
+export type WebGLParticleKind = keyof typeof ALPHA_BY_SCENE | "rain" | "theme-rain";
 type SpriteKind = keyof typeof ALPHA_BY_SCENE;
-type RainKind = Extract<WebGLParticleKind, "rain" | "custom-rain">;
+type RainKind = Extract<WebGLParticleKind, "rain" | "theme-rain">;
 
-const isRainKind = (kind: WebGLParticleKind): kind is RainKind => kind === "rain" || kind === "custom-rain";
+const isRainKind = (kind: WebGLParticleKind): kind is RainKind => kind === "rain" || kind === "theme-rain";
 
 const vertexSource = (kind: SpriteKind) => `
 attribute vec2 a_position;
@@ -144,7 +144,7 @@ export const startWebGLParticles = (
   const vertices = gl.createBuffer();
   const texture = rain ? null : gl.createTexture();
   const vertex = compileShader(gl, gl.VERTEX_SHADER, rain ? RAIN_VERTEX : vertexSource(kind));
-  const rainColour = palette && kind === "custom-rain" ? glslRgb(palette.primary) : DEFAULT_RAIN_COLOUR;
+  const rainColour = palette && kind === "theme-rain" ? glslRgb(palette.primary) : DEFAULT_RAIN_COLOUR;
   const fragment = compileShader(gl, gl.FRAGMENT_SHADER, rain ? rainFragment(rainColour) : FRAGMENT_SHADER);
   const release = () => {
     gl.deleteBuffer(vertices);
@@ -168,7 +168,7 @@ export const startWebGLParticles = (
   }
 
   const document = canvas.ownerDocument;
-  const star = kind === "stars" || kind === "custom-stars" || kind === "nebula";
+  const star = kind === "stars" || kind === "theme-stars" || kind === "nebula";
   const { sprites, advance } = star ? createStars(kind !== "nebula") : createParticles(kind);
   const vertexCount = sprites.length * CORNERS.length;
   const data = new Float32Array(vertexCount * stride);
@@ -206,11 +206,11 @@ export const startWebGLParticles = (
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
     try {
       const glow = star
-        ? createStarGlow(document, kind === "custom-stars" ? palette : undefined)
+        ? createStarGlow(document, kind === "theme-stars" ? palette : undefined)
         : createParticleGlow(
             document,
-            kind as "snow" | "custom-snow" | "fireflies",
-            kind === "custom-snow" ? palette : undefined,
+            kind as "snow" | "theme-snow" | "fireflies",
+            kind === "theme-snow" ? palette : undefined,
           );
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, glow);
     } catch {

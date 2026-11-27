@@ -78,7 +78,7 @@ export const SCENES: readonly BackgroundScene[] = [
     blobs: ["rgba(60,220,170,.32)", "rgba(40,160,200,.28)", "rgba(120,230,150,.22)", "rgba(30,120,110,.35)"],
   },
   {
-    id: "custom-glow",
+    id: "theme-glow",
     anim: "blobs",
     base: "linear-gradient(180deg, var(--wallpaper-base) 0%, rgba(var(--wallpaper-alt-rgb), .24) 100%)",
     blobs: [
@@ -89,25 +89,25 @@ export const SCENES: readonly BackgroundScene[] = [
     ],
   },
   {
-    id: "custom-stars",
+    id: "theme-stars",
     anim: "stars",
     palette: "theme",
     base: "radial-gradient(1400px 900px at 70% -10%, rgba(var(--wallpaper-alt-rgb), .35) 0%, rgba(var(--wallpaper-alt-rgb), 0) 60%), var(--wallpaper-base)",
   },
   {
-    id: "custom-snow",
+    id: "theme-snow",
     anim: "particles",
-    kind: "custom-snow",
+    kind: "theme-snow",
     base: "radial-gradient(1400px 900px at 50% 120%, rgba(var(--wallpaper-rgb), .3) 0%, rgba(var(--wallpaper-rgb), 0) 60%), var(--wallpaper-base)",
   },
   {
-    id: "custom-rain",
+    id: "theme-rain",
     anim: "particles",
-    kind: "custom-rain",
+    kind: "theme-rain",
     base: "linear-gradient(180deg, var(--wallpaper-base) 0%, rgba(var(--wallpaper-alt-rgb), .38) 100%)",
   },
   {
-    id: "custom-waves",
+    id: "theme-waves",
     anim: "waves",
     palette: "theme",
     base: "linear-gradient(180deg, var(--wallpaper-base) 0%, rgba(var(--wallpaper-rgb), .28) 100%)",
@@ -258,8 +258,8 @@ const PARTICLE_PREVIEW = {
   snow: "#fff",
   rain: "rgba(170,200,255,.8)",
   fireflies: "#d9ff7a",
-  "custom-snow": THEME_SWATCH.dot,
-  "custom-rain": "rgba(var(--wallpaper-rgb), .85)",
+  "theme-snow": THEME_SWATCH.dot,
+  "theme-rain": "rgba(var(--wallpaper-rgb), .85)",
 } as const;
 
 export const preview = (b: BackgroundScene) => {
