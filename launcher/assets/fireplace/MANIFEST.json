@@ -1,0 +1,18 @@
+{
+  "asset": "fire.webp",
+  "sha256": "54c0d6db7a4a5974593ab6f9db57f0e6c973b0bd3a79896ec93b5b6cfc5705d7",
+  "source": {
+    "title": "Fire looped 2",
+    "page": "https://commons.wikimedia.org/wiki/File:Fire_looped_2.gif",
+    "file": "https://upload.wikimedia.org/wikipedia/commons/8/81/Fire_looped_2.gif",
+    "author": "Frank Vincentz (photograph), Jahobr (looped GIF)",
+    "licence": "CC BY-SA 3.0"
+  },
+  "derivative": {
+    "format": "animated WebP",
+    "width": 1280,
+    "height": 720,
+    "fps": 15,
+    "changes": "Transcoded from the 25 fps source GIF and reduced to 15 fps."
+  }
+}

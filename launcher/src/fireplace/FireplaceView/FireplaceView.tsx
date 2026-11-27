@@ -3,7 +3,6 @@ import { useLayoutEffect, useRef } from "preact/hooks";
 import { useStore } from "../../shared/hooks/useStore";
 import type { Translate } from "../../shared/i18n/createTranslations";
 import type { Store } from "../../shared/state/createStore";
-import { FIRE_HEIGHT, FIRE_WIDTH, startFireAnimation } from "../startFireAnimation";
 
 import styles from "./FireplaceView.module.css";
 
@@ -22,7 +21,6 @@ interface Props {
 
 export const FireplaceView = ({ onClose, state, translate }: Props) => {
   const { open, volume, volumeVisible, audioAvailable } = useStore(state);
-  const canvas = useRef<HTMLCanvasElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
 
   useLayoutEffect(() => {
@@ -32,12 +30,6 @@ export const FireplaceView = ({ onClose, state, translate }: Props) => {
     const previousFocus = document.activeElement as HTMLElement | null;
     closeButton.current?.focus();
     return () => previousFocus?.focus?.();
-  }, [open]);
-
-  useLayoutEffect(() => {
-    if (open && canvas.current) {
-      return startFireAnimation(canvas.current);
-    }
   }, [open]);
 
   if (!open) {
@@ -55,15 +47,8 @@ export const FireplaceView = ({ onClose, state, translate }: Props) => {
       aria-modal="true"
       aria-label={translate("common.fireplace")}
     >
-      <canvas
-        id="fire-canvas"
-        class={styles.canvas}
-        ref={canvas}
-        width={FIRE_WIDTH}
-        height={FIRE_HEIGHT}
-        aria-hidden="true"
-      />
-      <div class={styles.hearth} aria-hidden="true" />
+      <img id="fire-image" class={styles.fire} src="./assets/fireplace/fire.webp" alt="" aria-hidden="true" />
+      <div class={styles.vignette} aria-hidden="true" />
       <div
         id="fire-volume"
         class={styles.volume}
