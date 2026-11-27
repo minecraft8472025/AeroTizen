@@ -1,13 +1,16 @@
 const assert = require("node:assert/strict");
+const { readFileSync } = require("node:fs");
+const path = require("node:path");
 const test = require("node:test");
 const { loadTypeScript } = require("./helpers/load_typescript.cjs");
 const { createBackgrounds } = loadTypeScript("launcher/src/backgrounds/createBackgrounds.ts");
 const { preview, SCENES } = loadTypeScript("launcher/src/backgrounds/scenes.ts");
+const { THEME_WALLPAPER } = loadTypeScript("launcher/src/backgrounds/themePalette.ts");
 const { needsWebGL } = loadTypeScript("launcher/src/contracts/backgrounds.ts");
 
 const NEW_GRADIENTS = ["prism", "pastel", "afterglow", "twilightpeaks", "borealis"];
 const GRADIENT_LAYER = /^(?:repeating-)?(?:linear|radial|conic)-gradient\(/;
-const COLOUR_LAYER = /^(?:#[0-9a-f]{3,8}|rgba?\([^)]*\))$/i;
+const COLOUR_LAYER = /^(?:#[0-9a-f]{3,8}|rgba?\([^)]*\)|var\(--[\w-]+\))$/i;
 
 const backgroundLayers = (value) => {
   const layers = [];
@@ -52,6 +55,21 @@ test("scene changes and speed changes render the requested background", () => {
   assert.equal(getState().current.base, "#000000");
   dispose();
   assert.deepEqual(calls, [[null, 1, false], ["waves", 1, false], ["black", 2, false], null]);
+});
+
+test("saved Hokie backgrounds load their theme-aware replacements", () => {
+  const { bridge, getState, dispose } = setup();
+  for (const [legacy, replacement] of Object.entries({
+    hokie: "custom-glow",
+    "hokie-stars": "custom-stars",
+    "hokie-snow": "custom-snow",
+    "hokie-rain": "custom-rain",
+    "hokie-waves": "custom-waves",
+  })) {
+    bridge.apply(legacy);
+    assert.equal(getState().current?.id, replacement, legacy);
+  }
+  dispose();
 });
 
 test("hot replacement preserves suspension and restores the saved scene at the new speed", () => {
@@ -115,22 +133,75 @@ test("Stage is an animated WebGL background with a pure CSS fallback and a still
   assertPureCss(swatch, "Stage swatch");
 });
 
-test("Hokie variants keep their animation types and have still swatches", () => {
+test("custom theme variants keep their animation types and have still swatches", () => {
   const variants = {
-    hokie: "blobs",
-    "hokie-stars": "stars",
-    "hokie-snow": "particles",
-    "hokie-rain": "particles",
-    "hokie-waves": "waves",
+    "custom-glow": "blobs",
+    "custom-stars": "stars",
+    "custom-snow": "particles",
+    "custom-rain": "particles",
+    "custom-waves": "waves",
   };
   for (const [id, anim] of Object.entries(variants)) {
     const scene = SCENES.find((candidate) => candidate.id === id);
     assert.ok(scene, `${id} is listed`);
     assert.equal(scene.anim, anim, `${id} keeps its animation`);
     assert.equal(needsWebGL(scene), anim === "stars" || anim === "particles", `${id} WebGL requirement`);
+    assert.match(scene.base, /var\(--wallpaper-/, `${id} uses the active theme colours`);
     assertPureCss(scene.base, `${id} base`);
     const swatch = preview(scene);
     assert.notEqual(swatch, scene.base, `${id} swatch shows a still frame, not only the base`);
     assertPureCss(swatch, `${id} swatch`);
   }
+  assert.equal(
+    SCENES.some(({ id }) => id.startsWith("hokie")),
+    false,
+    "Hokie-only scenes are gone",
+  );
+});
+
+const rgbToHex = (colour) =>
+  "#" +
+  colour
+    .split(",")
+    .map((channel) => Number(channel.trim()).toString(16).padStart(2, "0"))
+    .join("");
+
+const cssColourToRgb = (colour) => {
+  const hex = /^#([0-9a-f]{6})$/i.exec(colour);
+  if (!hex) {
+    return colour.replace(/\s+/g, "");
+  }
+  return [0, 2, 4].map((offset) => parseInt(hex[1].slice(offset, offset + 2), 16)).join(", ");
+};
+
+const cssContainsColour = (text, colour) => {
+  const rgb = colour.replace(/\s+/g, "");
+  const candidates = colour.startsWith("#") ? [colour, cssColourToRgb(colour)] : [colour, rgb, rgbToHex(colour)];
+  return candidates.some((candidate) => text.includes(candidate));
+};
+
+test("wallpaper palettes mirror the colours of their theme sheets", () => {
+  const cssDir = path.resolve(__dirname, "../launcher/css");
+  assert.deepEqual(Object.keys(THEME_WALLPAPER).sort(), [
+    "amethyst",
+    "classic",
+    "frost",
+    "glass",
+    "gloss",
+    "halo",
+    "hokie",
+    "mint",
+    "pop",
+  ]);
+  for (const [theme, palette] of Object.entries(THEME_WALLPAPER)) {
+    const text = readFileSync(path.join(cssDir, `theme-${theme}.css`), "utf8");
+    for (const [name, value] of Object.entries(palette)) {
+      assert.ok(cssContainsColour(text, value), `${theme} ${name} (${value}) is in its theme sheet`);
+    }
+  }
+  assert.deepEqual(THEME_WALLPAPER.hokie, {
+    base: "#150409",
+    primary: "229, 117, 31",
+    secondary: "134, 31, 65",
+  });
 });

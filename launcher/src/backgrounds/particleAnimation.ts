@@ -1,5 +1,8 @@
 import type { ParticleKind } from "../contracts/backgrounds";
 
+import type { WallpaperPalette } from "./themePalette";
+import { rgba, THEME_WALLPAPER } from "./themePalette";
+
 export const W = 1920;
 export const H = 1080;
 
@@ -62,24 +65,22 @@ export const runParticleLoop = (document: Document, speed: number, step: (dt: nu
   };
 };
 
-export const createStarGlow = (document: Document, hokie = false) =>
-  sprite(
-    document,
-    32,
-    hokie
-      ? [
-          [0, "rgba(255,242,232,1)"],
-          [0.12, "rgba(255,190,140,.92)"],
-          [0.35, "rgba(229,117,31,.28)"],
-          [1, "rgba(229,117,31,0)"],
-        ]
-      : [
-          [0, "rgba(255,255,255,1)"],
-          [0.12, "rgba(235,242,255,.9)"],
-          [0.35, "rgba(170,200,255,.25)"],
-          [1, "rgba(170,200,255,0)"],
-        ],
-  );
+export const createStarGlow = (document: Document, palette?: WallpaperPalette) => {
+  if (!palette) {
+    return sprite(document, 32, [
+      [0, "rgba(255,255,255,1)"],
+      [0.12, "rgba(235,242,255,.9)"],
+      [0.35, "rgba(170,200,255,.25)"],
+      [1, "rgba(170,200,255,0)"],
+    ]);
+  }
+  return sprite(document, 32, [
+    [0, "rgba(255,255,255,1)"],
+    [0.12, rgba(palette.primary, 0.92)],
+    [0.35, rgba(palette.secondary, 0.28)],
+    [1, rgba(palette.secondary, 0)],
+  ]);
+};
 
 export const createStars = (dense: boolean) => {
   const stars: { x: number; y: number; size: number; v: number; p: number; tw: number }[] = [];
@@ -107,7 +108,11 @@ export const createStars = (dense: boolean) => {
   return { sprites: stars, advance };
 };
 
-export const createParticleGlow = (document: Document, kind: Exclude<ParticleKind, "rain" | "hokie-rain">) => {
+export const createParticleGlow = (
+  document: Document,
+  kind: Exclude<ParticleKind, "rain" | "custom-rain">,
+  palette: WallpaperPalette = THEME_WALLPAPER.hokie,
+) => {
   if (kind === "snow") {
     return sprite(document, 64, [
       [0, "rgba(255,255,255,1)"],
@@ -116,12 +121,12 @@ export const createParticleGlow = (document: Document, kind: Exclude<ParticleKin
       [1, "rgba(255,255,255,0)"],
     ]);
   }
-  if (kind === "hokie-snow") {
+  if (kind === "custom-snow") {
     return sprite(document, 64, [
-      [0, "rgba(255,242,232,1)"],
-      [0.25, "rgba(255,220,200,.88)"],
-      [0.6, "rgba(255,157,92,.2)"],
-      [1, "rgba(255,157,92,0)"],
+      [0, "rgba(255,255,255,1)"],
+      [0.25, rgba(palette.primary, 0.88)],
+      [0.6, rgba(palette.secondary, 0.2)],
+      [1, rgba(palette.secondary, 0)],
     ]);
   }
   return sprite(document, 96, [
@@ -135,8 +140,8 @@ export const createParticleGlow = (document: Document, kind: Exclude<ParticleKin
 // Rain falls in streaks. Snow drifts with depth and fireflies wander.
 export const createParticles = (kind: ParticleKind) => {
   const ps: Particle[] = [];
-  const snow = kind === "snow" || kind === "hokie-snow";
-  const rain = kind === "rain" || kind === "hokie-rain";
+  const snow = kind === "snow" || kind === "custom-snow";
+  const rain = kind === "rain" || kind === "custom-rain";
   const n = kind === "fireflies" ? 70 : 130;
   function spawn(index: number, fromTop: boolean) {
     if (!ps[index]) {

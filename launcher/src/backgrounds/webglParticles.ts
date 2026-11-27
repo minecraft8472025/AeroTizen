@@ -8,23 +8,27 @@ import {
   runParticleLoop,
   W,
 } from "./particleAnimation";
+import type { WallpaperPalette } from "./themePalette";
+import { glslRgb } from "./themePalette";
 import { compileShader, getWebGL } from "./webgl";
 
 const STAR_ALPHA = "0.35 + 0.65 * abs(sin(u_time * a_style.y + a_style.x))";
+const SNOW_ALPHA = "0.45 + a_style.y * 0.55";
+const FIREFLY_ALPHA = "0.15 + 0.85 * sin(u_time * 0.9 + a_style.x) * sin(u_time * 0.9 + a_style.x)";
 const ALPHA_BY_SCENE = {
   stars: STAR_ALPHA,
-  "hokie-stars": STAR_ALPHA,
+  "custom-stars": STAR_ALPHA,
   nebula: STAR_ALPHA,
-  snow: "0.45 + a_style.y * 0.55",
-  "hokie-snow": "0.45 + a_style.y * 0.55",
-  fireflies: "0.15 + 0.85 * sin(u_time * 0.9 + a_style.x) * sin(u_time * 0.9 + a_style.x)",
+  snow: SNOW_ALPHA,
+  "custom-snow": SNOW_ALPHA,
+  fireflies: FIREFLY_ALPHA,
 };
 
-export type WebGLParticleKind = keyof typeof ALPHA_BY_SCENE | "rain" | "hokie-rain";
-type SpriteKind = Exclude<WebGLParticleKind, "rain" | "hokie-rain">;
-type RainKind = Extract<WebGLParticleKind, "rain" | "hokie-rain">;
+export type WebGLParticleKind = keyof typeof ALPHA_BY_SCENE | "rain" | "custom-rain";
+type SpriteKind = keyof typeof ALPHA_BY_SCENE;
+type RainKind = Extract<WebGLParticleKind, "rain" | "custom-rain">;
 
-const isRainKind = (kind: WebGLParticleKind): kind is RainKind => kind === "rain" || kind === "hokie-rain";
+const isRainKind = (kind: WebGLParticleKind): kind is RainKind => kind === "rain" || kind === "custom-rain";
 
 const vertexSource = (kind: SpriteKind) => `
 attribute vec2 a_position;
@@ -67,12 +71,9 @@ void main() {
 }
 `;
 
-const RAIN_COLOURS: Record<RainKind, string> = {
-  rain: "190.0, 215.0, 255.0",
-  "hokie-rain": "255.0, 157.0, 92.0",
-};
+const DEFAULT_RAIN_COLOUR = "190.0, 215.0, 255.0";
 
-const rainFragment = (kind: RainKind) => `
+const rainFragment = (colour: string) => `
 precision mediump float;
 varying mediump vec2 v_point;
 varying mediump vec3 v_streak;
@@ -80,7 +81,7 @@ void main() {
   vec2 offset = v_point - vec2(clamp(v_point.x, 0.0, v_streak.x), 0.0);
   float coverage = clamp(v_streak.y + 0.5 - length(offset), 0.0, 1.0);
   float alpha = v_streak.z * coverage;
-  gl_FragColor = vec4(vec3(${RAIN_COLOURS[kind]}) / 255.0 * alpha, alpha);
+  gl_FragColor = vec4(vec3(${colour}) / 255.0 * alpha, alpha);
 }
 `;
 
@@ -126,7 +127,12 @@ export const probeWebGL = (document: Document) => {
   return true;
 };
 
-export const startWebGLParticles = (canvas: HTMLCanvasElement, kind: WebGLParticleKind, speed: number) => {
+export const startWebGLParticles = (
+  canvas: HTMLCanvasElement,
+  kind: WebGLParticleKind,
+  speed: number,
+  palette?: WallpaperPalette,
+) => {
   const gl = getWebGL(canvas);
   if (!gl) {
     return;
@@ -138,7 +144,8 @@ export const startWebGLParticles = (canvas: HTMLCanvasElement, kind: WebGLPartic
   const vertices = gl.createBuffer();
   const texture = rain ? null : gl.createTexture();
   const vertex = compileShader(gl, gl.VERTEX_SHADER, rain ? RAIN_VERTEX : vertexSource(kind));
-  const fragment = compileShader(gl, gl.FRAGMENT_SHADER, rain ? rainFragment(kind) : FRAGMENT_SHADER);
+  const rainColour = palette && kind === "custom-rain" ? glslRgb(palette.primary) : DEFAULT_RAIN_COLOUR;
+  const fragment = compileShader(gl, gl.FRAGMENT_SHADER, rain ? rainFragment(rainColour) : FRAGMENT_SHADER);
   const release = () => {
     gl.deleteBuffer(vertices);
     gl.deleteTexture(texture);
@@ -161,7 +168,7 @@ export const startWebGLParticles = (canvas: HTMLCanvasElement, kind: WebGLPartic
   }
 
   const document = canvas.ownerDocument;
-  const star = kind === "stars" || kind === "hokie-stars" || kind === "nebula";
+  const star = kind === "stars" || kind === "custom-stars" || kind === "nebula";
   const { sprites, advance } = star ? createStars(kind !== "nebula") : createParticles(kind);
   const vertexCount = sprites.length * CORNERS.length;
   const data = new Float32Array(vertexCount * stride);
@@ -199,8 +206,12 @@ export const startWebGLParticles = (canvas: HTMLCanvasElement, kind: WebGLPartic
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
     try {
       const glow = star
-        ? createStarGlow(document, kind === "hokie-stars")
-        : createParticleGlow(document, kind as "snow" | "hokie-snow" | "fireflies");
+        ? createStarGlow(document, kind === "custom-stars" ? palette : undefined)
+        : createParticleGlow(
+            document,
+            kind as "snow" | "custom-snow" | "fireflies",
+            kind === "custom-snow" ? palette : undefined,
+          );
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, glow);
     } catch {
       release();

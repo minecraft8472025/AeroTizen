@@ -1,33 +1,16 @@
 import styles from "./WaveBackground.module.css";
 
+const BACK_PATH = "M0 60 Q 240 20 480 60 T 960 60 T 1440 60 T 1920 60 V 200 H 0 Z";
+const FRONT_PATH = "M0 80 Q 240 40 480 80 T 960 80 T 1440 80 T 1920 80 V 200 H 0 Z";
+
 const WAVE_LAYERS = {
   ocean: [
-    {
-      name: "back",
-      seconds: 28,
-      fill: "rgba(30,130,190,.28)",
-      path: "M0 60 Q 240 20 480 60 T 960 60 T 1440 60 T 1920 60 V 200 H 0 Z",
-    },
-    {
-      name: "front",
-      seconds: 18,
-      fill: "rgba(20,90,150,.38)",
-      path: "M0 80 Q 240 40 480 80 T 960 80 T 1440 80 T 1920 80 V 200 H 0 Z",
-    },
+    { name: "back", seconds: 28, fill: "rgba(30,130,190,.28)", path: BACK_PATH },
+    { name: "front", seconds: 18, fill: "rgba(20,90,150,.38)", path: FRONT_PATH },
   ],
-  hokie: [
-    {
-      name: "back",
-      seconds: 28,
-      fill: "rgba(134,31,65,.42)",
-      path: "M0 60 Q 240 20 480 60 T 960 60 T 1440 60 T 1920 60 V 200 H 0 Z",
-    },
-    {
-      name: "front",
-      seconds: 18,
-      fill: "rgba(229,117,31,.38)",
-      path: "M0 80 Q 240 40 480 80 T 960 80 T 1440 80 T 1920 80 V 200 H 0 Z",
-    },
+  theme: [
+    { name: "back", seconds: 28, fill: "rgba(var(--wallpaper-alt-rgb), .42)", path: BACK_PATH },
+    { name: "front", seconds: 18, fill: "rgba(var(--wallpaper-rgb), .38)", path: FRONT_PATH },
   ],
 } as const;
 

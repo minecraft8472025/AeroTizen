@@ -1,8 +1,11 @@
 import type { BackgroundGraphics, BackgroundScene } from "../../contracts/backgrounds";
 import { needsWebGL } from "../../contracts/backgrounds";
-import { useStore } from "../../shared/hooks/useStore";
+import type { SettingsSnapshot } from "../../contracts/preferences";
+import { useStore, useStoreSelector } from "../../shared/hooks/useStore";
+import type { Store } from "../../shared/state/createStore";
 import { blob } from "../scenes";
 import { StageBackground } from "../StageBackground/StageBackground";
+import { THEME_WALLPAPER } from "../themePalette";
 import { WaveBackground } from "../WaveBackground/WaveBackground";
 import { WebGLParticleCanvas } from "../WebGLParticleCanvas/WebGLParticleCanvas";
 
@@ -20,12 +23,15 @@ interface Props {
   performanceMode?: boolean;
   reportWebGL(available: boolean): void;
   scene: BackgroundScene;
+  settings: Store<SettingsSnapshot>;
   speed: number;
   webGL: BackgroundGraphics;
 }
 
-export const BackgroundSceneView = ({ scene, speed, webGL, reportWebGL, performanceMode = false }: Props) => {
+export const BackgroundSceneView = ({ scene, settings, speed, webGL, reportWebGL, performanceMode = false }: Props) => {
   const available = useStore(webGL);
+  const theme = useStoreSelector(settings, (snapshot) => snapshot.theme);
+  const palette = THEME_WALLPAPER[theme];
   if (!performanceMode && available === false && needsWebGL(scene)) {
     return null;
   }
@@ -62,13 +68,21 @@ export const BackgroundSceneView = ({ scene, speed, webGL, reportWebGL, performa
     case "stars":
       return performanceMode ? null : (
         <WebGLParticleCanvas
-          kind={scene.palette === "hokie" ? "hokie-stars" : "stars"}
+          kind={scene.palette === "theme" ? "custom-stars" : "stars"}
+          palette={scene.palette === "theme" ? palette : undefined}
           speed={speed}
           reportWebGL={reportWebGL}
         />
       );
     case "particles":
-      return performanceMode ? null : <WebGLParticleCanvas kind={scene.kind} speed={speed} reportWebGL={reportWebGL} />;
+      return performanceMode ? null : (
+        <WebGLParticleCanvas
+          kind={scene.kind}
+          palette={scene.kind === "custom-snow" || scene.kind === "custom-rain" ? palette : undefined}
+          speed={speed}
+          reportWebGL={reportWebGL}
+        />
+      );
     case "stage":
       return performanceMode ? null : <StageBackground speed={speed} reportWebGL={reportWebGL} />;
     default:

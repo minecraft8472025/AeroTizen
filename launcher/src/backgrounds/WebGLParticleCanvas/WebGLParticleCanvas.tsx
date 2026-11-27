@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from "preact/hooks";
 
 import { H, W } from "../particleAnimation";
+import type { WallpaperPalette } from "../themePalette";
 import type { WebGLParticleKind } from "../webglParticles";
 import { startWebGLParticles } from "../webglParticles";
 
@@ -8,18 +9,19 @@ import styles from "./WebGLParticleCanvas.module.css";
 
 interface Props {
   kind: WebGLParticleKind;
+  palette?: WallpaperPalette;
   reportWebGL(available: boolean): void;
   speed: number;
 }
 
-export const WebGLParticleCanvas = ({ kind, speed, reportWebGL }: Props) => {
+export const WebGLParticleCanvas = ({ kind, palette, speed, reportWebGL }: Props) => {
   const canvas = useRef<HTMLCanvasElement>(null);
   useLayoutEffect(() => {
     const element = canvas.current;
     if (!element) {
       return;
     }
-    const stop = startWebGLParticles(element, kind, speed);
+    const stop = startWebGLParticles(element, kind, speed, palette);
     if (!stop) {
       reportWebGL(false);
       return;
@@ -31,6 +33,6 @@ export const WebGLParticleCanvas = ({ kind, speed, reportWebGL }: Props) => {
       element.removeEventListener("webglcontextlost", onLoss);
       stop();
     };
-  }, [kind, speed, reportWebGL]);
+  }, [kind, palette, speed, reportWebGL]);
   return <canvas class={styles.canvas} data-renderer="webgl" ref={canvas} width={W} height={H} />;
 };

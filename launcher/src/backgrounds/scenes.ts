@@ -78,34 +78,39 @@ export const SCENES: readonly BackgroundScene[] = [
     blobs: ["rgba(60,220,170,.32)", "rgba(40,160,200,.28)", "rgba(120,230,150,.22)", "rgba(30,120,110,.35)"],
   },
   {
-    id: "hokie",
+    id: "custom-glow",
     anim: "blobs",
-    base: "radial-gradient(1400px 900px at 85% 120%, #5a1029 0%, rgba(90,16,41,0) 60%), #150409",
-    blobs: ["rgba(229,117,31,.45)", "rgba(134,31,65,.55)", "rgba(255,157,92,.28)", "rgba(90,16,41,.50)"],
+    base: "linear-gradient(180deg, var(--wallpaper-base) 0%, rgba(var(--wallpaper-alt-rgb), .24) 100%)",
+    blobs: [
+      "rgba(var(--wallpaper-rgb), .48)",
+      "rgba(var(--wallpaper-alt-rgb), .52)",
+      "rgba(var(--wallpaper-rgb), .26)",
+      "rgba(var(--wallpaper-alt-rgb), .38)",
+    ],
   },
   {
-    id: "hokie-stars",
+    id: "custom-stars",
     anim: "stars",
-    palette: "hokie",
-    base: "radial-gradient(1400px 900px at 70% -10%, #3a0a1c 0%, rgba(58,10,28,0) 60%), #150409",
+    palette: "theme",
+    base: "radial-gradient(1400px 900px at 70% -10%, rgba(var(--wallpaper-alt-rgb), .35) 0%, rgba(var(--wallpaper-alt-rgb), 0) 60%), var(--wallpaper-base)",
   },
   {
-    id: "hokie-snow",
+    id: "custom-snow",
     anim: "particles",
-    kind: "hokie-snow",
-    base: "radial-gradient(1400px 900px at 50% 120%, #5a1029 0%, rgba(90,16,41,0) 60%), #150409",
+    kind: "custom-snow",
+    base: "radial-gradient(1400px 900px at 50% 120%, rgba(var(--wallpaper-rgb), .3) 0%, rgba(var(--wallpaper-rgb), 0) 60%), var(--wallpaper-base)",
   },
   {
-    id: "hokie-rain",
+    id: "custom-rain",
     anim: "particles",
-    kind: "hokie-rain",
-    base: "linear-gradient(180deg, #150409 0%, #2a0a14 100%)",
+    kind: "custom-rain",
+    base: "linear-gradient(180deg, var(--wallpaper-base) 0%, rgba(var(--wallpaper-alt-rgb), .38) 100%)",
   },
   {
-    id: "hokie-waves",
+    id: "custom-waves",
     anim: "waves",
-    palette: "hokie",
-    base: "linear-gradient(180deg, #150409 0%, #3a0a1c 100%)",
+    palette: "theme",
+    base: "linear-gradient(180deg, var(--wallpaper-base) 0%, rgba(var(--wallpaper-rgb), .28) 100%)",
   },
   { id: "starfield", anim: "stars", base: "#02030a" },
   {
@@ -241,13 +246,20 @@ export const SCENES: readonly BackgroundScene[] = [
 const STAGE_SWATCH =
   "repeating-linear-gradient(30deg, rgba(4,5,14,0.45) 0px, rgba(4,5,14,0.45) 0.8px, rgba(4,5,14,0) 0.8px, rgba(4,5,14,0) 2.4px), repeating-linear-gradient(120deg, rgba(4,5,14,0.45) 0px, rgba(4,5,14,0.45) 0.8px, rgba(4,5,14,0) 0.8px, rgba(4,5,14,0) 2.4px), linear-gradient(rgba(4,5,14,0.09), rgba(4,5,14,0.09)), radial-gradient(1px 1px at 45.3% 4.4%, #fff, transparent), radial-gradient(1px 1px at 48.8% 3.9%, #fff, transparent), radial-gradient(1px 1px at 73.4% 11.1%, #fff, transparent), radial-gradient(1px 1px at 81.3% 2.8%, #fff, transparent), radial-gradient(1px 1px at 88% 23.6%, #fff, transparent), radial-gradient(1px 1px at 95.3% 20.8%, #fff, transparent), radial-gradient(3.4% 6.1% at 61.7% 9.7%, rgba(205,225,255,0.33) 0%, rgba(205,225,255,0.41) 80%, rgba(205,225,255,0.55) 90%, rgba(205,225,255,0) 100%), radial-gradient(2.2% 3.9% at 63.8% 19.4%, rgba(150,170,255,0.27) 0%, rgba(150,170,255,0.34) 80%, rgba(150,170,255,0.45) 90%, rgba(150,170,255,0) 100%), radial-gradient(3.1% 5.6% at 71.6% 29.2%, rgba(185,160,255,0.3) 0%, rgba(185,160,255,0.38) 80%, rgba(185,160,255,0.5) 90%, rgba(185,160,255,0) 100%), radial-gradient(2.8% 5% at 66.9% 38.9%, rgba(160,130,255,0.27) 0%, rgba(160,130,255,0.34) 80%, rgba(160,130,255,0.45) 90%, rgba(160,130,255,0) 100%), radial-gradient(1.4% 2.5% at 76.4% 15.8%, rgba(220,170,255,0.27) 0%, rgba(220,170,255,0.34) 80%, rgba(220,170,255,0.45) 90%, rgba(220,170,255,0) 100%), radial-gradient(1.6% 2.8% at 78.9% 33.3%, rgba(185,160,255,0.24) 0%, rgba(185,160,255,0.3) 80%, rgba(185,160,255,0.4) 90%, rgba(185,160,255,0) 100%), radial-gradient(1.6% 2.8% at 84.8% 33.9%, rgba(190,150,255,0.24) 0%, rgba(190,150,255,0.3) 80%, rgba(190,150,255,0.4) 90%, rgba(190,150,255,0) 100%), radial-gradient(3.1% 5.6% at 93.8% 26.4%, rgba(240,110,230,0.33) 0%, rgba(240,110,230,0.41) 80%, rgba(240,110,230,0.55) 90%, rgba(240,110,230,0) 100%), radial-gradient(1.9% 3.3% at 93.8% 6.9%, rgba(240,140,242,0.24) 0%, rgba(240,140,242,0.3) 80%, rgba(240,140,242,0.4) 90%, rgba(240,140,242,0) 100%), radial-gradient(3.4% 6.1% at 90.6% 50%, rgba(225,90,210,0.18) 0%, rgba(225,90,210,0.22) 80%, rgba(225,90,210,0.3) 90%, rgba(225,90,210,0) 100%), radial-gradient(2.5% 4.4% at 98.1% 59.7%, rgba(235,120,230,0.18) 0%, rgba(235,120,230,0.22) 80%, rgba(235,120,230,0.3) 90%, rgba(235,120,230,0) 100%), radial-gradient(2.2% 3.9% at 64.1% 55%, rgba(120,150,255,0.21) 0%, rgba(120,150,255,0.26) 80%, rgba(120,150,255,0.35) 90%, rgba(120,150,255,0) 100%), radial-gradient(1.6% 2.8% at 73.4% 56.9%, rgba(140,140,255,0.18) 0%, rgba(140,140,255,0.22) 80%, rgba(140,140,255,0.3) 90%, rgba(140,140,255,0) 100%), radial-gradient(0.9% 1.7% at 54.4% 20%, rgba(120,160,255,0.27) 0%, rgba(120,160,255,0.34) 80%, rgba(120,160,255,0.45) 90%, rgba(120,160,255,0) 100%), radial-gradient(0.9% 1.7% at 61.7% 29.7%, rgba(130,170,255,0.27) 0%, rgba(130,170,255,0.34) 80%, rgba(130,170,255,0.45) 90%, rgba(130,170,255,0) 100%), radial-gradient(0.9% 1.7% at 54.1% 31.9%, rgba(120,160,255,0.21) 0%, rgba(120,160,255,0.26) 80%, rgba(120,160,255,0.35) 90%, rgba(120,160,255,0) 100%), radial-gradient(2.3% 4.2% at 37.2% 36.9%, rgba(100,130,240,0.18) 0%, rgba(100,130,240,0.22) 80%, rgba(100,130,240,0.3) 90%, rgba(100,130,240,0) 100%), radial-gradient(1.6% 2.8% at 41.9% 38.1%, rgba(100,130,240,0.18) 0%, rgba(100,130,240,0.22) 80%, rgba(100,130,240,0.3) 90%, rgba(100,130,240,0) 100%), radial-gradient(1.3% 2.2% at 32.8% 37.8%, rgba(100,130,240,0.17) 0%, rgba(100,130,240,0.21) 80%, rgba(100,130,240,0.28) 90%, rgba(100,130,240,0) 100%), radial-gradient(1.3% 2.2% at 30.2% 33.6%, rgba(90,120,230,0.15) 0%, rgba(90,120,230,0.19) 80%, rgba(90,120,230,0.25) 90%, rgba(90,120,230,0) 100%), radial-gradient(1.9% 3.3% at 22.7% 22.2%, rgba(80,100,200,0.12) 0%, rgba(80,100,200,0.15) 80%, rgba(80,100,200,0.2) 90%, rgba(80,100,200,0) 100%), radial-gradient(2.8% 5% at 45.6% 58.3%, rgba(90,110,220,0.12) 0%, rgba(90,110,220,0.15) 80%, rgba(90,110,220,0.2) 90%, rgba(90,110,220,0) 100%), radial-gradient(1.9% 3.3% at 53.6% 73.6%, rgba(90,110,220,0.11) 0%, rgba(90,110,220,0.14) 80%, rgba(90,110,220,0.18) 90%, rgba(90,110,220,0) 100%), radial-gradient(1.6% 2.8% at 83.3% 71.7%, rgba(190,110,220,0.12) 0%, rgba(190,110,220,0.15) 80%, rgba(190,110,220,0.2) 90%, rgba(190,110,220,0) 100%), radial-gradient(0.9% 1.7% at 92.2% 61.7%, rgba(240,140,242,0.21) 0%, rgba(240,140,242,0.26) 80%, rgba(240,140,242,0.35) 90%, rgba(240,140,242,0) 100%), radial-gradient(0.9% 1.7% at 88.8% 18.3%, rgba(240,150,242,0.21) 0%, rgba(240,150,242,0.26) 80%, rgba(240,150,242,0.35) 90%, rgba(240,150,242,0) 100%)";
 
+const THEME_SWATCH = {
+  dot: "rgba(var(--wallpaper-rgb), .95)",
+  soft: "rgba(var(--wallpaper-alt-rgb), .9)",
+  crest:
+    "linear-gradient(180deg, transparent 60%, rgba(var(--wallpaper-rgb), .35) 60%, rgba(var(--wallpaper-alt-rgb), .6) 100%)",
+} as const;
+
 // Small static rendering used for the Settings swatches.
 const PARTICLE_PREVIEW = {
   snow: "#fff",
-  "hokie-snow": "#ffdcc4",
   rain: "rgba(170,200,255,.8)",
-  "hokie-rain": "rgba(255,157,92,.85)",
   fireflies: "#d9ff7a",
+  "custom-snow": THEME_SWATCH.dot,
+  "custom-rain": "rgba(var(--wallpaper-rgb), .85)",
 } as const;
 
 export const preview = (b: BackgroundScene) => {
@@ -263,8 +275,8 @@ export const preview = (b: BackgroundScene) => {
     );
   }
   if (b.anim === "stars") {
-    const dot = b.palette === "hokie" ? "#ffdcc4" : "#fff";
-    const soft = b.palette === "hokie" ? "rgba(229,117,31,.9)" : "#cfe0ff";
+    const dot = b.palette === "theme" ? THEME_SWATCH.dot : "#fff";
+    const soft = b.palette === "theme" ? THEME_SWATCH.soft : "#cfe0ff";
     return (
       "radial-gradient(1px 1px at 20% 30%, " +
       dot +
@@ -303,8 +315,8 @@ export const preview = (b: BackgroundScene) => {
   }
   if (b.anim === "waves") {
     const crest =
-      b.palette === "hokie"
-        ? "linear-gradient(180deg, transparent 60%, rgba(229,117,31,.35) 60%, rgba(134,31,65,.6) 100%)"
+      b.palette === "theme"
+        ? THEME_SWATCH.crest
         : "linear-gradient(180deg, transparent 60%, rgba(40,140,200,.35) 60%, rgba(10,60,100,.6) 100%)";
     return crest + "," + b.base;
   }

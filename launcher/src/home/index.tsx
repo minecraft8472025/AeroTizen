@@ -1,6 +1,7 @@
 import { createRef, render } from "preact";
 import { flushSync } from "preact/compat";
 
+import { THEME_WALLPAPER } from "../backgrounds/themePalette";
 import type { SettingsStore } from "../contracts/preferences";
 import type { StatusStores } from "../contracts/status";
 import type { LauncherUpdateNotice } from "../contracts/updates";
@@ -26,10 +27,18 @@ export const mountHome = (
   const document = mount.ownerDocument;
   const artworkEnvironment = { tv: !!runtime.tizen };
   const initialTheme = document.body.getAttribute("data-theme") || "";
+  const wallpaperProperties = ["--wallpaper-rgb", "--wallpaper-alt-rgb", "--wallpaper-base"] as const;
+  const initialWallpaper = wallpaperProperties.map((name) => document.documentElement.style.getPropertyValue(name));
   // Apply the shell appearance before any Home focus geometry is measured.
   const syncShell = () => {
     const values = settings.getSnapshot();
     document.body.setAttribute("data-theme", values.theme);
+    // Wallpapers paint the root element, so the theme colours live there too.
+    const palette = THEME_WALLPAPER[values.theme];
+    const rootStyle = document.documentElement.style;
+    rootStyle.setProperty("--wallpaper-rgb", palette.primary);
+    rootStyle.setProperty("--wallpaper-alt-rgb", palette.secondary);
+    rootStyle.setProperty("--wallpaper-base", palette.base);
     document.documentElement.setAttribute("data-performance-mode", String(values.performanceMode));
   };
   syncShell();
@@ -66,6 +75,13 @@ export const mountHome = (
     inventory.dispose();
     unsubscribeShell();
     document.body.setAttribute("data-theme", initialTheme);
+    wallpaperProperties.forEach((name, index) => {
+      if (initialWallpaper[index]) {
+        document.documentElement.style.setProperty(name, initialWallpaper[index]);
+      } else {
+        document.documentElement.style.removeProperty(name);
+      }
+    });
     document.documentElement.removeAttribute("data-performance-mode");
   };
   try {
