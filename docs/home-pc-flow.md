@@ -16,6 +16,15 @@ Both Home options run on the TV after setup and work without root.
   returned from both.
 - The watcher waits while Art Mode is active or if the TV does not report its Art
   Mode or power state. Watcher cold boot is unverified on the tested 2024 Frame.
+- Home return from an app opened by AeroTizen follows that app's visibility, not
+  Samsung Home's. The app must first have appeared on screen; two consecutive
+  "not visible" readings then bring the launcher back. The second reading is
+  requested immediately from the first reply, so a short Smart Hub overlay is
+  caught even when the TV throttles background timers. Apps that never report
+  visible are left alone unless Samsung Home is positively in front.
+- Samsung does not deliver the Home key to ordinary web apps, including on
+  Tizen 10. Free My TV's compatible Home-return watcher is reported on Tizen
+  3, 4 and 9, but there is no published Tizen 10 success for it or Native Home.
 
 ## Native Home setup
 

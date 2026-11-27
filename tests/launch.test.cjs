@@ -255,10 +255,7 @@ test("watcher follows host visibility rather than the wrapper identity", async (
   await watcher.tick();
   watcher.statuses[host].visible = false;
   await watcher.tick();
-  assert.deepEqual(watcher.launches, [], "grace period prevents immediate relaunch");
-  watcher.advance(1800);
-  await watcher.tick();
-  assert.deepEqual(watcher.launches, [watcher.self]);
+  assert.deepEqual(watcher.launches, [watcher.self], "the immediate recheck catches Home");
 });
 
 test("watcher stands aside for a visible externally launched HbbTV host", async () => {

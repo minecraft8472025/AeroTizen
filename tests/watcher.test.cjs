@@ -600,7 +600,7 @@ test("a default install catches a real Home press from a watched app", () => {
   assert.ok(h.state().guard.history.some((item) => item.detail === "home pressed in Netflix"));
 });
 
-test("a watched app hiding without Samsung Home in front is never mistaken for Home", () => {
+test("Home return from a watched app does not need Samsung Home to report itself", () => {
   const h = harness({ capability: false });
   h.api.onStart();
   h.advance(8000);
@@ -610,10 +610,15 @@ test("a watched app hiding without Samsung Home in front is never mistaken for H
   h.control("/apps?ids=Netflix");
   h.control("/watch?id=Netflix");
   h.advance(11000);
+  assert.equal(h.launches.length, 1, "the app stays open while it is in front");
   h.statuses.set("Netflix", { running: true, visible: false });
-  h.advance(4000);
-  assert.equal(h.launches.length, 1, "the app stays open while Samsung Home is not foreground");
-  assert.ok(h.state().guard.history.some((item) => item.kind === "not-home"));
+  h.advance(1800);
+  assert.equal(h.launches.length, 2, "two not-visible readings are enough, without a Home-status reply");
+  assert.ok(h.state().guard.history.some((item) => item.detail === "home pressed in Netflix"));
+  assert.equal(
+    h.state().guard.history.some((item) => item.kind === "not-home"),
+    false,
+  );
 });
 
 test("a slow app launch is not bounced, but the following Home press is caught", () => {
@@ -662,6 +667,31 @@ test("a visibility blip while an app opens does not bounce back to the launcher"
   h.advance(1800);
   assert.equal(h.launches.length, 1, "the launcher stays out of the way during the handoff");
   assert.ok(h.state().guard.history.some((item) => item.kind === "handoff"));
+});
+
+test("an invisible blip is ignored when the immediate recheck sees the app", () => {
+  const h = harness({ capability: false });
+  h.api.onStart();
+  h.advance(8000);
+  h.statuses.set("AppA", { running: true, visible: true });
+  h.statuses.set(SELF, { running: true, visible: false });
+  h.control("/apps?ids=AppA");
+  h.control("/watch?id=AppA");
+  h.advance(11000);
+  h.hold("AppA");
+  h.statuses.set("AppA", { running: true, visible: false });
+  h.advance(300);
+  const first = h.pendingRequest("AppA");
+  assert.ok(first, "the first not-visible reading is requested");
+  h.respond(first, { status: 200, body: { running: true, visible: false } });
+  const second = h.pendingRequest("AppA");
+  assert.ok(second, "the false reply triggers an immediate confirmation");
+  h.respond(second, { status: 200, body: { running: true, visible: true } });
+  h.advance(1800);
+  assert.equal(h.launches.length, 1, "a one-reading blip must not bounce the app");
+  assert.ok(
+    h.state().guard.history.some((item) => item.kind === "handoff" && item.detail.includes("immediate recheck")),
+  );
 });
 
 test("apps already running when the inventory arrives are not mistaken for a new app", () => {
@@ -739,6 +769,22 @@ test("an app that never reports visible holds Home only while it is running", ()
       ),
   );
   assert.equal(h.state().watched, null);
+});
+
+test("an unseen app that stops is left alone without a positive Home reading", () => {
+  const h = harness({ capability: false });
+  h.api.onStart();
+  h.advance(8000);
+  h.statuses.set(SAMSUNG_HOME, { running: true, visible: false });
+  h.statuses.set("AppA", { running: true, visible: false });
+  h.control("/apps?ids=AppA");
+  h.control("/watch?id=AppA");
+  h.statuses.set(SELF, { running: true, visible: false });
+  h.advance(20000);
+  h.statuses.set("AppA", { running: false, visible: false });
+  h.advance(5000);
+  assert.equal(h.launches.length, 1, "a stop alone is not a Home press");
+  assert.ok(h.state().guard.history.some((item) => item.kind === "not-home"));
 });
 
 test("a watch survives the moment before the opened app covers the launcher", () => {

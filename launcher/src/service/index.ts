@@ -713,16 +713,21 @@ function recheck(candidate: LaunchCandidate, cb: () => void) {
     }
   });
 }
-// A hidden launcher alone is not enough: it is also hidden the moment an app opens. The TV's
-// local API exposes Samsung Home as a foreground app, so require that positive signal before a
-// non-boot reclaim. If the TV does not report it, apps simply stay open instead of bouncing.
-function launchSelf(why: string) {
+// A return from an app opened by AeroTizen has its own proof: that app was seen on screen and then
+// stopped reporting itself visible twice in a row (see tick). A generic reclaim, without a watched
+// app, still needs Samsung Home positively in front because a hidden launcher also means an app
+// simply opened. Boot is unconditional.
+function launchSelf(why: string, requireSamsungHome = false) {
   if (why === "boot") {
     launchSelfReady(why);
     return;
   }
   if (!watcherRelaunchEnabled()) {
     record("disabled", why);
+    return;
+  }
+  if (!requireSamsungHome) {
+    launchSelfReady(why);
     return;
   }
   appStatus(SAMSUNG_HOME_APP_ID, function (home) {
@@ -882,10 +887,30 @@ function tick() {
           if (settling) {
             record("handoff", id + " briefly hidden during launch");
             state.watchedHiddenSince = 0;
+          } else if (!state.watchedHiddenSince) {
+            state.watchedHiddenSince = now;
+            // Free My TV's watchBack re-asks from inside the reply callback: a hidden page has
+            // throttled timers, and Smart Hub can cover an app for only one second. A second
+            // "not visible" immediately after the first is the positive Home signal; waiting for
+            // the next poll used to miss those short blips.
+            appStatus(id, function (again) {
+              if (!valid() || state.watched !== id) {
+                done();
+                return;
+              }
+              if (!again || again.visible) {
+                state.watchedHiddenSince = 0;
+                record("handoff", id + " visible again on immediate recheck");
+                done();
+                return;
+              }
+              if (!isFrame()) {
+                launchSelf("home pressed in " + id);
+              }
+              done();
+            });
+            return;
           } else {
-            if (!state.watchedHiddenSince) {
-              state.watchedHiddenSince = now;
-            }
             const grace = isFrame() ? FRAME_HIDDEN_GRACE_MS : WATCHED_HIDDEN_GRACE_MS;
             if (now - state.watchedHiddenSince >= grace) {
               launchSelf("home pressed in " + id);
@@ -923,7 +948,9 @@ function tick() {
           const ranLongEnough = !!state.watchedRanAt && now - state.watchedRanAt >= WATCH_COVER_GRACE_MS;
           if ((!settling || ranLongEnough) && now - state.watchedStoppedSince >= WATCH_STOP_GRACE_MS) {
             record("unwatched", id + " stopped while the launcher was hidden");
-            launchSelf("home pressed in " + id);
+            // This app never advertised visibility, so only a positive Samsung Home reading can
+            // prove that its stop was a Home press rather than an ordinary app launch.
+            launchSelf("home pressed in " + id, true);
           }
         }
         done();
@@ -947,7 +974,7 @@ function tick() {
       // A failed status reads as "not running" except on Frame TVs, where any gap blocks a
       // relaunch. The TV's API can stall for seconds while Samsung Home loads.
       if (!settling && (result.complete || !isFrame()) && !standAside(result)) {
-        launchSelf("covered without an app");
+        launchSelf("covered without an app", true);
       }
       // Scans that hit their deadline are logged by snapshot() as scan-timeout.
       if (!result.timedOut && Date.now() - scanAt >= SLOW_SCAN_MS) {
