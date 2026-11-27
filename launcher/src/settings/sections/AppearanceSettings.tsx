@@ -13,6 +13,7 @@ const APPEARANCE_OPTIONS = [
   { value: "frost", labelKey: "appearance.frost" },
   { value: "gloss", labelKey: "appearance.gloss" },
   { value: "amethyst", labelKey: "appearance.amethyst" },
+  { value: "hokie", labelKey: "appearance.hokie" },
   { value: "mint", labelKey: "appearance.mint" },
   { value: "halo", labelKey: "appearance.halo" },
 ] as const;

@@ -63,7 +63,7 @@ export const normalizeSettings = (
     home: home === null ? null : validHome,
     theme: choice(
       data.theme,
-      ["classic", "glass", "pop", "frost", "gloss", "amethyst", "mint", "halo"],
+      ["classic", "glass", "pop", "frost", "gloss", "amethyst", "hokie", "mint", "halo"],
       defaults.theme,
     ),
     performanceMode: boolean(data.performanceMode, defaults.performanceMode),

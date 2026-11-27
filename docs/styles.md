@@ -150,7 +150,7 @@ hooks. Keep card focus paint and motion with the card, rather than in `base.css`
 `InputDock` owns collection spacing and the compact dock. `InputCard` owns its
 frame, icon, labels, status badge and focused/disconnected states. Their styles
 use `data-theme` to stack the icon above the label and show the status badge in
-Glass, Gloss, Amethyst, Mint, Halo, Pop and Frost. Classic uses a horizontal card.
+Glass, Gloss, Amethyst, Hokie, Mint, Halo, Pop and Frost. Classic uses a horizontal card.
 Pass the compact layout explicitly so child geometry can use it directly. The card
 exposes `data-input-card`, `data-status`, `data-disconnected` and `data-input-part`
 hooks. Theme tokens own neutral input paint. Connection status palettes keep local
@@ -215,8 +215,8 @@ The weather location editor uses the field's full-width details variant.
 moves the thumb; `data-focused` remains independent of the on/off value. Every theme
 defines its `--settings-toggle-*` colours and radius. The shared Settings focus
 indicator draws the control focus, and thumb motion uses the shared feedback duration.
-Gloss and Mint share their selected-choice gradients with the toggle track. Glass
-and Amethyst use their own shaded tracks; optional theme shadows add depth.
+Gloss and Mint share their selected-choice gradients with the toggle track. Glass,
+Amethyst and Hokie use their own shaded tracks; optional theme shadows add depth.
 Fireplace supplies its focused card surface to retain its artwork under focus.
 `SelectionIndicator` takes an explicit small variant for wallpaper swatches.
 Component variants must not depend on a parent's private CSS class.
