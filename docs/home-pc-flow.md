@@ -20,8 +20,12 @@ Both Home options run on the TV after setup and work without root.
   Samsung Home's. The app must first have appeared on screen; two consecutive
   "not visible" readings then bring the launcher back. The second reading is
   requested immediately from the first reply, so a short Smart Hub overlay is
-  caught even when the TV throttles background timers. Apps that never report
-  visible are left alone unless Samsung Home is positively in front.
+  caught even when the TV throttles background timers. Once the app has been
+  seen, the launch guard is three seconds rather than ten, so pressing Home
+  soon after opening an app no longer feels stuck. Samsung's internal
+  `com.samsung.tv.homeupdateview` process is also used as a positive Home
+  signal where the TV exposes it through `getAppsContext()`. Apps that never
+  report visible are left alone unless Samsung Home or that signal is present.
 - Samsung does not deliver the Home key to ordinary web apps, including on
   Tizen 10. Free My TV's compatible Home-return watcher is reported on Tizen
   3, 4 and 9, but there is no published Tizen 10 success for it or Native Home.

@@ -92,6 +92,7 @@ declare const tizen: DiagnosticsStorageHost &
   IpControlServiceHost & {
     readonly application: {
       launch(id: string, ready: () => void, failed: (error?: { message?: string } | null) => void): void;
+      getAppsContext?(): readonly { appInfo?: { id?: string } }[];
     };
     readonly preference?: {
       getValue?(key: string): string;
@@ -187,12 +188,18 @@ try {
 }
 const SELF = LAUNCHER_APP_ID;
 const SAMSUNG_HOME_APP_ID = "com.samsung.tv.csfs";
+// Undocumented internal Samsung package. Free My TV issue #566 observed it appearing in
+// getAppsContext() at every Home press, including when the outgoing app still reports visible.
+const SAMSUNG_HOME_SIGNAL = "com.samsung.tv.homeupdateview";
 const HIDDEN_GRACE_MS = 250; // non-Frame: Samsung Home appears almost at once
 const FRAME_HIDDEN_GRACE_MS = 1500; // Frame: give Art Mode time to report before reclaiming
 const WATCHED_HIDDEN_GRACE_MS = 1500; // non-Frame: an app can briefly report invisible during transitions
 const APP_GRACE_MS = 2500;
 const WATCH_STOP_GRACE_MS = 1500; // a watched app must stay stopped this long before it's dropped
 const WATCH_COVER_GRACE_MS = 10000; // an app the launcher opened may take this long to cover it
+// Once the app has actually reported visible, the launch handoff is over. A short guard still
+// ignores its first hidden readings, so Home returns quickly without reintroducing app bounce.
+const WATCH_SEEN_GRACE_MS = 3000;
 // Before a watched app has ever reported visible, a slow TV can spend much longer than the cover
 // grace bringing it forward. Keep suppressing reclaims until we know the launch did not happen.
 const HANDOFF_MAX_MS = 60000;
@@ -333,7 +340,27 @@ function handoffSettling(now: number) {
   if (!state.handoffAt || now < state.handoffAt) {
     return false;
   }
-  return now - state.handoffAt < (state.seen ? WATCH_COVER_GRACE_MS : HANDOFF_MAX_MS);
+  return now - state.handoffAt < (state.seen ? WATCH_SEEN_GRACE_MS : HANDOFF_MAX_MS);
+}
+// The local TV API can leave the outgoing app marked visible while Smart Hub covers it. Samsung's
+// Home UI process is a second, positive signal that does not depend on that app's status. Unknown
+// firmware simply has no such entry; the visibility double-check still handles Home there.
+function samsungHomeSignal() {
+  try {
+    const contexts = tizen.application.getAppsContext?.();
+    if (!contexts) {
+      return false;
+    }
+    for (const context of contexts) {
+      const id = context?.appInfo?.id;
+      if (id === SAMSUNG_HOME_SIGNAL || id?.endsWith(".homeupdateview")) {
+        return true;
+      }
+    }
+  } catch {
+    /* An undocumented API must never break the watcher. */
+  }
+  return false;
 }
 function resetTracking() {
   state.watched = null;
@@ -862,6 +889,12 @@ function tick() {
       state.hiddenSince = now;
     }
     state.selfVisible = false;
+    if (state.watched && samsungHomeSignal()) {
+      record("home-signal", state.watched + " opened Samsung Home");
+      launchSelf("home pressed in " + state.watched);
+      done();
+      return;
+    }
     const settling = now - state.hiddenSince < hiddenGrace() || now - state.watchAt < APP_GRACE_MS;
     // Frame waits out the grace period even for a watched app; other TVs check it at once.
     if (settling && isFrame()) {

@@ -23,6 +23,7 @@ function harness(options = {}) {
   const launches = [];
   const artReplies = [];
   const held = new Set();
+  let appContexts = [];
   const statuses = new Map([
     [SELF, { running: true, visible: false }],
     [SAMSUNG_HOME, { running: true, visible: true }],
@@ -184,6 +185,9 @@ function harness(options = {}) {
           statuses.set(SELF, { running: true, visible: true });
           if (success) success();
         },
+        getAppsContext() {
+          return appContexts.map((id) => ({ appInfo: { id } }));
+        },
       },
     },
   };
@@ -273,6 +277,9 @@ function harness(options = {}) {
       return requests.find((item) => item.options.path === path && !item.replied);
     },
     respond,
+    setAppContexts(ids) {
+      appContexts = ids.slice();
+    },
     setCapability(value) {
       capability = value;
     },
@@ -667,6 +674,36 @@ test("a visibility blip while an app opens does not bounce back to the launcher"
   h.advance(1800);
   assert.equal(h.launches.length, 1, "the launcher stays out of the way during the handoff");
   assert.ok(h.state().guard.history.some((item) => item.kind === "handoff"));
+});
+
+test("Samsung's Home UI signal returns immediately, even during the handoff", () => {
+  const h = harness({ capability: false });
+  h.api.onStart();
+  h.advance(8000);
+  h.statuses.set("AppA", { running: true, visible: true });
+  h.statuses.set(SELF, { running: true, visible: false });
+  h.control("/apps?ids=AppA");
+  h.control("/watch?id=AppA");
+  h.advance(500);
+  h.setAppContexts(["com.samsung.tv.homeupdateview"]);
+  h.advance(400);
+  assert.equal(h.launches.length, 2, "Home is caught without waiting for the app to stop reporting visible");
+  assert.ok(h.state().guard.history.some((item) => item.kind === "home-signal"));
+});
+
+test("Home after a settled app launch does not wait for the old ten-second guard", () => {
+  const h = harness({ capability: false });
+  h.api.onStart();
+  h.advance(8000);
+  h.statuses.set("AppA", { running: true, visible: true });
+  h.statuses.set(SELF, { running: true, visible: false });
+  h.control("/apps?ids=AppA");
+  h.control("/watch?id=AppA");
+  h.advance(4000);
+  h.statuses.set("AppA", { running: true, visible: false });
+  h.advance(400);
+  assert.equal(h.launches.length, 2, "the seen-app guard is only three seconds now");
+  assert.ok(h.state().guard.history.some((item) => item.detail === "home pressed in AppA"));
 });
 
 test("an invisible blip is ignored when the immediate recheck sees the app", () => {
