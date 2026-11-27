@@ -16,10 +16,10 @@ test("Fireplace remote controls update volume and stop drawing and audio on clos
   await page.addInitScript(() => {
     const probe = { frames: 0, opened: 0, closed: 0, sources: 0, gain: null };
     window.fireplaceProbe = probe;
-    const putImageData = CanvasRenderingContext2D.prototype.putImageData;
-    CanvasRenderingContext2D.prototype.putImageData = function (...args) {
+    const clearRect = CanvasRenderingContext2D.prototype.clearRect;
+    CanvasRenderingContext2D.prototype.clearRect = function (...args) {
       if (this.canvas.id === "fire-canvas") probe.frames++;
-      return putImageData.apply(this, args);
+      return clearRect.apply(this, args);
     };
     window.AudioContext = class extends AudioContext {
       constructor() {
@@ -71,7 +71,7 @@ test("Fireplace remote controls update volume and stop drawing and audio on clos
   await expect(overlay).toBeVisible();
   await expect(overlay).toHaveAttribute("role", "dialog");
   await expect(overlay).toHaveAttribute("aria-modal", "true");
-  await expect(overlay.locator("canvas")).toHaveAttribute("width", "256");
+  await expect(overlay.locator("canvas")).toHaveAttribute("width", "960");
   await expect(overlay.locator("canvas")).toHaveAttribute("aria-hidden", "true");
   await expect(overlay.getByRole("button", { name: "Close" })).toBeVisible();
   await expect(overlay.getByText("▲ ▼ Volume · Enter / Back Close")).toBeVisible();
