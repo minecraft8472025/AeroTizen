@@ -28,10 +28,6 @@ function harness(options = {}) {
   let artOptions;
   let artValue = "unknown";
   const stored = options.stored ? new Map(options.stored) : new Map();
-  // Existing watcher tests exercise the opt-in relaunch path; real installs default to off.
-  if (!stored.has("aerotizen.watcher-relaunch.v1")) {
-    stored.set("aerotizen.watcher-relaunch.v1", "on");
-  }
   const preference = options.noPreference
     ? null
     : {
@@ -570,7 +566,7 @@ test("non-Frame TVs open the launcher at boot and reclaim Home on the fast path"
   assert.equal(h.artReplies.length, 0);
 });
 
-test("watcher relaunch is opt-in so ordinary apps are never bounced back by default", () => {
+test("an explicit relaunch opt-out still keeps apps open", () => {
   const stored = new Map([["aerotizen.watcher-relaunch.v1", "off"]]);
   const h = harness({ capability: false, stored });
   h.api.onStart();
@@ -581,6 +577,41 @@ test("watcher relaunch is opt-in so ordinary apps are never bounced back by defa
   h.advance(2000);
   assert.equal(h.launches.length, 1, "a hidden launcher stays hidden while an app is open");
   assert.ok(h.state().guard.history.some((item) => item.kind === "disabled"));
+});
+
+test("a default install catches a real Home press from a watched app", () => {
+  const h = harness({ capability: false });
+  h.api.onStart();
+  h.advance(8000);
+  h.statuses.set("Netflix", { running: true, visible: true });
+  h.statuses.set(SELF, { running: true, visible: false });
+  h.control("/apps?ids=Netflix");
+  h.control("/watch?id=Netflix");
+  h.advance(11000); // the launch handoff has settled
+  assert.equal(h.launches.length, 1, "the app stays open");
+  assert.equal(h.state().seen, true);
+  h.statuses.set("Netflix", { running: true, visible: false });
+  h.advance(1800);
+  assert.equal(h.launches.length, 2, "Home inside the app brings the launcher back");
+  assert.ok(h.state().guard.history.some((item) => item.detail === "home pressed in Netflix"));
+});
+
+test("a slow app launch is not bounced, but the following Home press is caught", () => {
+  const h = harness({ capability: false });
+  h.api.onStart();
+  h.advance(8000);
+  h.statuses.set("SlowApp", { running: true, visible: false });
+  h.statuses.set(SELF, { running: true, visible: true });
+  h.control("/apps?ids=SlowApp");
+  h.control("/watch?id=SlowApp");
+  h.advance(20000); // longer than the cover grace, shorter than the unseen-app ceiling
+  assert.equal(h.launches.length, 1, "a slow handoff is not mistaken for Home");
+  h.statuses.set(SELF, { running: true, visible: false });
+  h.statuses.set("SlowApp", { running: true, visible: true });
+  h.advance(11000);
+  h.statuses.set("SlowApp", { running: true, visible: false });
+  h.advance(1800);
+  assert.equal(h.launches.length, 2, "Home after the app settles is caught");
 });
 
 test("non-Frame TVs return from a watched app without the Frame debounce", () => {
@@ -681,7 +712,11 @@ test("an app that never reports visible holds Home only while it is running", ()
   h.advance(1200);
   assert.equal(h.launches.length, 2);
   assert.ok(
-    h.state().guard.history.some((item) => item.kind === "unwatched" && item.detail === "AppA stopped running"),
+    h
+      .state()
+      .guard.history.some(
+        (item) => item.kind === "unwatched" && item.detail === "AppA stopped while the launcher was hidden",
+      ),
   );
   assert.equal(h.state().watched, null);
 });
@@ -709,6 +744,8 @@ test("a watch for an app that never opened clears while the launcher stays on sc
   h.advance(9000);
   assert.equal(h.state().watched, "AppA");
   h.advance(1500);
+  assert.equal(h.state().watched, "AppA", "a slow launch must not be cleared after the cover grace");
+  h.advance(50000);
   assert.equal(h.state().watched, null);
 });
 
