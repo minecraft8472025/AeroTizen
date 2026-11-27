@@ -5,14 +5,20 @@ import { createStore } from "../shared/state/createStore";
 
 import type { FireplaceState } from "./FireplaceView/FireplaceView";
 import { FireplaceView } from "./FireplaceView/FireplaceView";
+import type { FireplaceAudio } from "./startFireAudio";
 import { startFireAudio } from "./startFireAudio";
 
 const MAX_VOLUME = 10;
 const VOLUME_NOTICE_MS = 1500;
 
 export const mountFireplace = (host: HTMLElement, translate: Translate) => {
-  const state = createStore<FireplaceState>({ open: false, volume: 6, volumeVisible: false });
-  let audio: ReturnType<typeof startFireAudio>;
+  const state = createStore<FireplaceState>({
+    open: false,
+    volume: 6,
+    volumeVisible: false,
+    audioAvailable: true,
+  });
+  let audio: FireplaceAudio = { available: true, setVolume() {}, stop() {} };
   let volumeTimer: number | undefined;
   let disposed = false;
 
@@ -23,8 +29,7 @@ export const mountFireplace = (host: HTMLElement, translate: Translate) => {
     }
     window.clearTimeout(volumeTimer);
     volumeTimer = undefined;
-    audio?.stop();
-    audio = undefined;
+    audio.stop();
     state.set({ ...current, open: false, volumeVisible: false });
   };
   const changeVolume = (step: number) => {
@@ -33,7 +38,7 @@ export const mountFireplace = (host: HTMLElement, translate: Translate) => {
       return;
     }
     const volume = Math.max(0, Math.min(MAX_VOLUME, current.volume + step));
-    audio?.setVolume(volume / MAX_VOLUME);
+    audio.setVolume(volume / MAX_VOLUME);
     state.set({ ...current, volume, volumeVisible: true });
     window.clearTimeout(volumeTimer);
     volumeTimer = window.setTimeout(() => {
@@ -41,7 +46,7 @@ export const mountFireplace = (host: HTMLElement, translate: Translate) => {
       state.set({ ...state.getSnapshot(), volumeVisible: false });
     }, VOLUME_NOTICE_MS);
   };
-  render(<FireplaceView state={state} translate={translate} />, host);
+  render(<FireplaceView state={state} translate={translate} onClose={close} />, host);
   return {
     bridge: {
       subscribe: state.subscribe,
@@ -52,7 +57,7 @@ export const mountFireplace = (host: HTMLElement, translate: Translate) => {
         }
         // Start audio on the launch gesture, before Preact renders the canvas.
         audio = startFireAudio(window, current.volume / MAX_VOLUME);
-        state.set({ ...current, open: true });
+        state.set({ ...current, open: true, audioAvailable: audio.available });
       },
       close,
       isOpen: () => state.getSnapshot().open,
@@ -62,6 +67,7 @@ export const mountFireplace = (host: HTMLElement, translate: Translate) => {
     dispose() {
       disposed = true;
       close();
+      audio.stop();
       render(null, host);
     },
   };

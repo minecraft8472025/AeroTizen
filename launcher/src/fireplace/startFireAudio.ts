@@ -3,6 +3,22 @@ type AudioWindow = Pick<typeof window, "setTimeout" | "clearTimeout"> & {
   webkitAudioContext?: typeof AudioContext;
 };
 
+export interface FireplaceAudio {
+  readonly available: boolean;
+  setVolume(volume: number): void;
+  stop(): void;
+}
+
+const UNAVAILABLE_AUDIO: FireplaceAudio = {
+  available: false,
+  setVolume() {
+    // The visual fireplace stays usable when Web Audio cannot start.
+  },
+  stop() {
+    // Nothing to tear down.
+  },
+};
+
 const closeAudio = (context: AudioContext) => {
   try {
     void context.close().catch(() => undefined);
@@ -11,7 +27,18 @@ const closeAudio = (context: AudioContext) => {
   }
 };
 
-const playFire = (context: AudioContext, browser: AudioWindow, volume: number) => {
+const resumeAudio = (context: AudioContext) => {
+  if (context.state !== "suspended") {
+    return;
+  }
+  try {
+    void context.resume().catch(() => undefined);
+  } catch {
+    // Some TVs report a suspended context but reject resume(); keep the visual running.
+  }
+};
+
+const playFire = (context: AudioContext, browser: AudioWindow, volume: number): FireplaceAudio => {
   const master = context.createGain();
   master.gain.value = volume;
 
@@ -42,8 +69,12 @@ const playFire = (context: AudioContext, browser: AudioWindow, volume: number) =
   for (let i = 0; i < burstSamples.length; i++) {
     burstSamples[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / burstSamples.length, 6);
   }
-  let timer: number;
+  let timer: number | undefined;
+  let stopped = false;
   const crackle = () => {
+    if (stopped) {
+      return;
+    }
     const source = context.createBufferSource();
     source.buffer = burst;
     const filter = context.createBiquadFilter();
@@ -55,28 +86,49 @@ const playFire = (context: AudioContext, browser: AudioWindow, volume: number) =
     source.connect(filter);
     filter.connect(gain);
     gain.connect(master);
+    source.onended = () => {
+      source.disconnect();
+      filter.disconnect();
+      gain.disconnect();
+    };
     source.start();
     timer = browser.setTimeout(crackle, 40 + Math.random() * (Math.random() < 0.3 ? 900 : 220));
   };
   master.connect(context.destination);
   roar.start();
   crackle();
+  resumeAudio(context);
   return {
+    available: true,
     setVolume(next: number) {
       master.gain.value = next;
     },
     stop() {
-      browser.clearTimeout(timer);
+      if (stopped) {
+        return;
+      }
+      stopped = true;
+      if (timer !== undefined) {
+        browser.clearTimeout(timer);
+      }
+      try {
+        roar.stop();
+      } catch {
+        // A source that never started cannot be stopped on some TVs.
+      }
+      roar.disconnect();
+      lowPass.disconnect();
+      roarGain.disconnect();
       master.disconnect();
       closeAudio(context);
     },
   };
 };
 
-export const startFireAudio = (browser: AudioWindow, volume: number) => {
+export const startFireAudio = (browser: AudioWindow, volume: number): FireplaceAudio => {
   const Audio = browser.AudioContext || browser.webkitAudioContext;
   if (!Audio) {
-    return;
+    return UNAVAILABLE_AUDIO;
   }
   let context: AudioContext | undefined;
   try {
@@ -86,7 +138,6 @@ export const startFireAudio = (browser: AudioWindow, volume: number) => {
     if (context) {
       closeAudio(context);
     }
-    // Keep the visual fireplace available when Web Audio cannot start.
-    return;
+    return UNAVAILABLE_AUDIO;
   }
 };

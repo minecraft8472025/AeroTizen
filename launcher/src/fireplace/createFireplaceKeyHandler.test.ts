@@ -23,7 +23,7 @@ test("the active state follows the current Fireplace state", () => {
 test.each([
   { code: KEY.UP, action: "volumeUp" as const },
   { code: KEY.DOWN, action: "volumeDown" as const },
-])("$action handles repeated volume keys without preventing native defaults", ({ code, action }) => {
+])("$action handles repeated volume keys without scrolling the page", ({ code, action }) => {
   const controls = createControls();
   const event = { preventDefault: vi.fn() };
   const handler = createFireplaceKeyHandler(KEY, controls);
@@ -34,10 +34,10 @@ test.each([
   expect(controls[action]).toHaveBeenCalledTimes(2);
   expect(controls[action === "volumeUp" ? "volumeDown" : "volumeUp"]).not.toHaveBeenCalled();
   expect(controls.close).not.toHaveBeenCalled();
-  expect(event.preventDefault).not.toHaveBeenCalled();
+  expect(event.preventDefault).toHaveBeenCalledTimes(2);
 });
 
-test.each([KEY.ENTER, KEY.BACK, KEY.ESC])("close key %i prevents its default and closes Fireplace", (code) => {
+test.each([KEY.ENTER, 32, KEY.BACK, KEY.ESC])("close key %i prevents its default and closes Fireplace", (code) => {
   const controls = createControls();
   const event = { preventDefault: vi.fn() };
   createFireplaceKeyHandler(KEY, controls).keydown(code, event);

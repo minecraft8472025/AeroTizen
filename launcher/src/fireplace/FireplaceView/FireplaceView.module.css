@@ -1,20 +1,21 @@
 .fireplace {
   position: fixed;
   top: 0;
-  left: 0;
   right: 0;
   bottom: 0;
+  left: 0;
   z-index: 100;
-  background: #000;
+  overflow: hidden;
+  background: radial-gradient(70% 55% at 50% 100%, #1a0602 0%, #050201 58%, #000 100%);
 }
 
 .canvas {
   position: absolute;
   left: 0;
   bottom: 0;
-  width: 1920px;
-  height: 1080px;
-  filter: blur(2.5px) saturate(1.15);
+  width: 100%;
+  height: 100%;
+  filter: blur(0.6px) saturate(1.12);
 }
 
 .hearth {
@@ -22,22 +23,67 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 120px;
-  background: linear-gradient(to top, #050302 30%, rgba(5, 3, 2, 0));
+  height: min(14vh, 140px);
+  background: linear-gradient(to top, #050302 35%, rgba(5, 3, 2, 0));
+  pointer-events: none;
+}
+
+.volume,
+.hints {
+  position: absolute;
+  color: #fff;
+  background: var(--fireplace-notice-surface, rgba(0, 0, 0, 0.55));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+  pointer-events: none;
 }
 
 .volume {
-  position: absolute;
-  top: 60px;
-  right: 80px;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%);
   padding: 14px 28px;
   border-radius: 999px;
-  background: var(--fireplace-notice-surface);
   font-size: 26px;
+  font-weight: 600;
   opacity: 0;
   transition: opacity var(--motion-duration-enter);
 
   &[data-visible="true"] {
     opacity: 1;
+  }
+}
+
+.hints {
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.close {
+  position: absolute;
+  top: 44px;
+  right: 60px;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  background: var(--fireplace-notice-surface, rgba(0, 0, 0, 0.55));
+  color: #fff;
+  font-size: 38px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+
+  &:focus {
+    outline: 3px solid #fff;
+    outline-offset: 4px;
   }
 }
