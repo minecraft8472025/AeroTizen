@@ -110,7 +110,7 @@ function harness(options = {}) {
     clearTimeout: cancel,
     Date: { now: () => clock },
   };
-  installHomeWatcher(context, A.catalog);
+  installHomeWatcher(context, A.catalog, options.plain !== true);
   if (options.native) installNativeNavigation(context);
   if (options.apps) installApps(context);
   function advance(ms) {
@@ -153,6 +153,31 @@ function harness(options = {}) {
     context,
   };
 }
+
+test("plain builds never start or contact the watcher", () => {
+  const h = harness({ plain: true });
+  let failed = 0;
+  h.A.homewatch.start(undefined, () => failed++);
+  h.A.homewatch.watch("Netflix");
+  h.A.homewatch.reportApps(["Netflix"]);
+  h.A.homewatch.reportStartup({});
+  h.A.homewatch.request("/home");
+  h.advance(30000);
+  assert.equal(h.requests.length, 0, "no watcher HTTP requests");
+  assert.equal(h.scripts.length, 0, "no service module is loaded");
+  assert.equal(h.calls.length, 0, "no background app launch");
+  assert.equal(failed, 1, "the optional service fails fast instead of hanging");
+});
+
+test("plain builds launch apps immediately without a watcher handoff", () => {
+  const h = harness({ plain: true, apps: true });
+  h.A.apps.launch({ id: "regular.app", name: "Regular" });
+  assert.deepEqual(
+    h.calls.map((call) => call.id),
+    ["regular.app"],
+  );
+  assert.equal(h.requests.length, 0);
+});
 
 test("Samsung Home escape waits for leave acknowledgement then explicitly opens stock Home", () => {
   const h = harness();

@@ -88,6 +88,7 @@ const homewatch =
   createHomeWatcherService({
     appId: runtime.config.APP_ID,
     catalog: appCatalog,
+    enabled: runtime.config.PLAIN_APP !== true,
     now: () => Date.now(),
     platform: createHomeWatcherPlatform(window),
     timers: window,

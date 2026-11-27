@@ -76,6 +76,8 @@ export interface LauncherConfig extends AppsConfig {
     Record<"LEFT" | "RIGHT" | "UP" | "DOWN" | "ENTER" | "BACK" | "ESC" | "IME_DONE" | "IME_CANCEL", number>
   >;
   readonly LONG_PRESS_MS: number;
+  // Plain builds omit the watcher service and all Home-reclaim behavior.
+  readonly PLAIN_APP?: boolean;
   readonly SERVICE_ID: string;
   readonly SERVICE_URL: string;
   readonly SPEED: Readonly<{ MIN: number; MAX: number; STEP: number }>;

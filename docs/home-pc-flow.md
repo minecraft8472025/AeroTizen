@@ -4,8 +4,16 @@ Both Home options run on the TV after setup and work without root.
 
 | Option                         | What happens when you press Home                                                                                |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| **Plain app (3.5.6)**          | Home leaves AeroTizen like any other app. Reopen it from the Samsung app row.                                   |
 | **Watcher (default)**          | The background service detects a return to Samsung Home and reopens AeroTizen.                                  |
 | **Native Home (experimental)** | The TV routes Home directly to AeroTizen and the watcher stops. Startup support depends on the TV and firmware. |
+
+## Plain app build
+
+Version `3.5.6` registers no Tizen service, does not prelaunch, and does not watch
+launched apps. Opening Netflix, YouTube or the fireplace still works normally;
+only automatic return on Home is removed. The watcher and Native Home guidance
+below applies to the other builds, not to this plain package.
 
 ## Watcher limits
 

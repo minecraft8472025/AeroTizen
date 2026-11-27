@@ -29,6 +29,7 @@ interface StartupAttempt {
 interface Dependencies {
   appId: string;
   catalog: Pick<AppCatalog, "preloadedStoreId">;
+  enabled?: boolean;
   now(): number;
   platform: HomeWatcherPlatform;
   timers: Pick<Window, "clearTimeout" | "setTimeout">;
@@ -52,10 +53,42 @@ const cancelled = (error: unknown) =>
 export const createHomeWatcherService = ({
   appId,
   catalog,
+  enabled = true,
   now,
   platform,
   timers,
 }: Dependencies): HomeWatcherService => {
+  if (!enabled) {
+    // Plain-app builds still need the service shape for input/app handoffs, but never contact
+    // the watcher or start a background service. Every handoff completes immediately.
+    return {
+      start(done, failed) {
+        if (failed) {
+          failed();
+        } else {
+          done?.();
+        }
+      },
+      request(path, done) {
+        const watched = PATHS.watch + "?id=";
+        done?.({
+          leaving: path === PATHS.leave,
+          watched: path.startsWith(watched) ? decodeURIComponent(path.slice(watched.length)) : null,
+        });
+      },
+      watch(id, done) {
+        void id;
+        done?.();
+      },
+      reportApps() {},
+      reportStartup() {},
+      useSamsungHome() {
+        platform.openSamsungHome(() => {});
+      },
+      isLeaving: () => false,
+      dispose() {},
+    };
+  }
   let disposed = false;
   let leaving = false;
   let starting: StartupAttempt | undefined;

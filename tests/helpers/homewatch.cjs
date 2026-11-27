@@ -3,12 +3,13 @@ const { appCatalog } = loadTypeScript("launcher/src/shared/apps/appCatalog.ts");
 const { createHomeWatcherPlatform } = loadTypeScript("launcher/src/platform/tizen/createHomeWatcherPlatform.ts");
 const { createHomeWatcherService } = loadTypeScript("launcher/src/services/createHomeWatcherService.ts");
 
-exports.installHomeWatcher = (context, catalog = appCatalog) => {
+exports.installHomeWatcher = (context, catalog = appCatalog, enabled = true) => {
   const window = context.window;
   const runtime = window.AeroTizen;
   const service = createHomeWatcherService({
     appId: runtime.config.APP_ID,
     catalog,
+    enabled,
     now: () => context.Date?.now() ?? Date.now(),
     platform: createHomeWatcherPlatform({
       ...window,

@@ -1,5 +1,4 @@
 const { openCategory } = require("./drawer_helpers.cjs");
-const { watcherStatus } = require("./watcher_helpers.cjs");
 const { test, expect } = require("./launcher_fixture.cjs");
 const errors = new WeakMap();
 test.beforeEach(async ({ page }) => {
@@ -32,7 +31,12 @@ const openSettings = async (page, waitForApps = true) => {
   await openCategory(page, "wallpaper");
   await page.locator('[data-key="bg:black"]').click();
 };
-test("compiled Settings escape waits for /leave before launching native Samsung Home by remote", async ({ page }) => {
+test("compiled Settings escape opens native Samsung Home without a watcher handshake", async ({ page }) => {
+  const requests = [];
+  await page.route("http://127.0.0.1:47790/**", (route) => {
+    requests.push(new URL(route.request().url()).pathname);
+    return route.fulfill({ json: {} });
+  });
   await page.addInitScript(() => {
     window.nativeLaunches = [];
     window.tizen = {
@@ -55,26 +59,13 @@ test("compiled Settings escape waits for /leave before launching native Samsung 
       },
     };
   });
-  let acknowledge;
-  await page.route(
-    "http://127.0.0.1:47790/leave",
-    (route) =>
-      new Promise((resolve) => {
-        acknowledge = async () => {
-          await route.fulfill({ json: watcherStatus(route.request().url()) });
-          resolve();
-        };
-      }),
-  );
   await openSettings(page);
   await page.keyboard.press("Escape");
   const escape = page.locator("#editor").getByRole("button", { name: "Samsung Home", exact: true });
   for (let step = 0; step < 7; step++) await page.keyboard.press("ArrowDown");
   await expect(escape).toBeFocused();
   await page.keyboard.press("Enter");
-  await expect.poll(() => typeof acknowledge).toBe("function");
-  expect(await page.evaluate(() => window.nativeLaunches)).toEqual([]);
-  await acknowledge();
   await expect.poll(() => page.evaluate(() => window.nativeLaunches)).toEqual(["com.samsung.tv.csfs"]);
+  expect(requests.filter((path) => path === "/leave" || path === "/home")).toEqual([]);
   expect(await page.evaluate(() => AeroTizen.homewatch.isLeaving())).toBe(false);
 });

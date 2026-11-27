@@ -2,6 +2,8 @@ import type { LauncherConfig } from "./contracts/launcher";
 
 export const launcherConfig: LauncherConfig = {
   APP_ID: "DclHome001.Home",
+  // v3.5.6 is a plain TV app: no background watcher, no launch handoff, no Home return.
+  PLAIN_APP: true,
   SERVICE_ID: "DclHome001.Watcher",
   SERVICE_URL: "http://127.0.0.1:47790",
 

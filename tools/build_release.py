@@ -81,8 +81,11 @@ def build_launcher(root, output, tag=None):
             "licenses/lucide-preact.txt",
         )
     ]
-    for directory, suffix in (("css", ".css"), ("js", ".js"), ("service", ".js")):
+    services = widget.findall(f"{TIZEN}service")
+    for directory, suffix in (("css", ".css"), ("js", ".js")):
         files.extend((launcher / directory).rglob(f"*{suffix}"))
+    if services:
+        files.extend((launcher / "service").rglob("*.js"))
     files.extend(path for path in (launcher / "fonts").rglob("*") if path.is_file())
     fireplace = launcher / "assets/fireplace"
     files.extend(fireplace / name for name in ("fire.gif", "CREDITS.md", "MANIFEST.json", "LICENSE.txt"))
@@ -94,13 +97,17 @@ def build_launcher(root, output, tag=None):
         weather = launcher / "assets/weather"
         files.extend(weather / f"{scene}.jpg" for scene in scenes)
         files.extend(weather / name for name in ("CREDITS.md", "MANIFEST.json"))
-    for name in (
-        "js/launcher-ui.js",
-        "service/index.js",
-        "service/artmode.js",
-        "service/home-mode.js",
-        "service/home-store.js",
-    ):
+    required = ["js/launcher-ui.js"]
+    if services:
+        required.extend(
+            (
+                "service/index.js",
+                "service/artmode.js",
+                "service/home-mode.js",
+                "service/home-store.js",
+            )
+        )
+    for name in required:
         if launcher / name not in files:
             raise ValueError(f"Launcher is missing required runtime file {name}")
     for source in files:
