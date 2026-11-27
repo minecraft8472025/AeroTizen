@@ -199,7 +199,10 @@ function watcherHarness() {
                 ? loadTypeScript("launcher/src/service/protocol.ts")
                 : require(name),
     module: { exports: {} },
-    tizen: { application: { launch: (id) => launches.push(id) } },
+    tizen: {
+      application: { launch: (id) => launches.push(id) },
+      preference: { getValue: () => "on" },
+    },
     Date: { now: () => now },
     setInterval: (fn) => {
       tick = fn;

@@ -92,6 +92,9 @@ declare const tizen: DiagnosticsStorageHost &
     readonly application: {
       launch(id: string, ready: () => void, failed: (error?: { message?: string } | null) => void): void;
     };
+    readonly preference?: {
+      getValue?(key: string): string;
+    };
   };
 declare const require: {
   (name: "http"): typeof import("http");
@@ -200,6 +203,7 @@ const MAX_PARALLEL_STATUS_REQUESTS = 4; // a slow local API is not asked for the
 const SLOW_SCAN_MS = 4000; // longer inventory scans are logged so slow TVs show up in reports
 const CAPABILITY_RETRY_MS = 5000;
 const WATCHER_POLL_INTERVAL_MS = 300;
+const WATCHER_RELAUNCH_KEY = "aerotizen.watcher-relaunch.v1";
 const GUARD_HISTORY_LIMIT = 100;
 const MAX_MODE_REQUEST_CHARACTERS = 4096;
 const MAX_EVENT_BATCH_CHARACTERS = 16384;
@@ -263,6 +267,16 @@ const createHomeMode = require("./home-mode");
 let homeMode = createHomeMode(null, updateMode, true);
 function watcherEnabled() {
   return !stopped && homeMode.read().mode === "watcher";
+}
+// Relaunching the launcher after an app opens is disabled by default: it is indistinguishable
+// from a Home press on several Samsung TVs and traps apps inside AeroTizen. Boot launch, which
+// calls launchSelf("boot"), is unaffected.
+function watcherRelaunchEnabled() {
+  try {
+    return tizen.preference?.getValue?.(WATCHER_RELAUNCH_KEY) === "on";
+  } catch {
+    return false;
+  }
 }
 
 function record(kind: string, detail: string) {
@@ -684,6 +698,10 @@ function recheck(candidate: LaunchCandidate, cb: () => void) {
   });
 }
 function launchSelf(why: string) {
+  if (why !== "boot" && !watcherRelaunchEnabled()) {
+    record("disabled", why);
+    return;
+  }
   if (pending || state.leaving || stopped || !permitted()) {
     return;
   }

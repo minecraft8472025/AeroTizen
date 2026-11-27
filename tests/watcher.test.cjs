@@ -27,7 +27,11 @@ function harness(options = {}) {
   let powerState = "on";
   let artOptions;
   let artValue = "unknown";
-  const stored = options.stored || new Map();
+  const stored = options.stored ? new Map(options.stored) : new Map();
+  // Existing watcher tests exercise the opt-in relaunch path; real installs default to off.
+  if (!stored.has("aerotizen.watcher-relaunch.v1")) {
+    stored.set("aerotizen.watcher-relaunch.v1", "on");
+  }
   const preference = options.noPreference
     ? null
     : {
@@ -564,6 +568,19 @@ test("non-Frame TVs open the launcher at boot and reclaim Home on the fast path"
   h.advance(900);
   assert.equal(h.launches.length, 2, "hidden launcher comes back within a second");
   assert.equal(h.artReplies.length, 0);
+});
+
+test("watcher relaunch is opt-in so ordinary apps are never bounced back by default", () => {
+  const stored = new Map([["aerotizen.watcher-relaunch.v1", "off"]]);
+  const h = harness({ capability: false, stored });
+  h.api.onStart();
+  h.advance(3000);
+  assert.equal(h.launches.length, 1, "boot launch still works");
+  h.advance(5000);
+  h.statuses.set(SELF, { running: true, visible: false });
+  h.advance(2000);
+  assert.equal(h.launches.length, 1, "a hidden launcher stays hidden while an app is open");
+  assert.ok(h.state().guard.history.some((item) => item.kind === "disabled"));
 });
 
 test("non-Frame TVs return from a watched app without the Frame debounce", () => {
