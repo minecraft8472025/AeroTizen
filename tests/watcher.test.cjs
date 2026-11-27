@@ -12,6 +12,7 @@ const { createDiagnosticsContext } = loadTypeScript("launcher/src/diagnostics/se
 const createHomeMode = serviceFactory("home-mode", "launcher/src/service/createHomeMode.ts");
 const source = serviceSource("index", "launcher/src/service/index.ts");
 const SELF = "DclHome001.Home";
+const SAMSUNG_HOME = "com.samsung.tv.csfs";
 
 function harness(options = {}) {
   let clock = 1000000;
@@ -22,7 +23,10 @@ function harness(options = {}) {
   const launches = [];
   const artReplies = [];
   const held = new Set();
-  const statuses = new Map([[SELF, { running: true, visible: false }]]);
+  const statuses = new Map([
+    [SELF, { running: true, visible: false }],
+    [SAMSUNG_HOME, { running: true, visible: true }],
+  ]);
   let capability = options.capability === undefined ? true : options.capability;
   let powerState = "on";
   let artOptions;
@@ -594,6 +598,22 @@ test("a default install catches a real Home press from a watched app", () => {
   h.advance(1800);
   assert.equal(h.launches.length, 2, "Home inside the app brings the launcher back");
   assert.ok(h.state().guard.history.some((item) => item.detail === "home pressed in Netflix"));
+});
+
+test("a watched app hiding without Samsung Home in front is never mistaken for Home", () => {
+  const h = harness({ capability: false });
+  h.api.onStart();
+  h.advance(8000);
+  h.statuses.set("Netflix", { running: true, visible: true });
+  h.statuses.set(SAMSUNG_HOME, { running: true, visible: false });
+  h.statuses.set(SELF, { running: true, visible: false });
+  h.control("/apps?ids=Netflix");
+  h.control("/watch?id=Netflix");
+  h.advance(11000);
+  h.statuses.set("Netflix", { running: true, visible: false });
+  h.advance(4000);
+  assert.equal(h.launches.length, 1, "the app stays open while Samsung Home is not foreground");
+  assert.ok(h.state().guard.history.some((item) => item.kind === "not-home"));
 });
 
 test("a slow app launch is not bounced, but the following Home press is caught", () => {

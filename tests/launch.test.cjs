@@ -156,6 +156,7 @@ function watcherHarness() {
   const statuses = {
     [self]: { running: true, visible: false },
     [host]: { running: true, visible: true },
+    "com.samsung.tv.csfs": { running: true, visible: true },
   };
   const launches = [];
   let now = 10000,

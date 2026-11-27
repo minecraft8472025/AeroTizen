@@ -186,6 +186,7 @@ try {
   /* optional metadata */
 }
 const SELF = LAUNCHER_APP_ID;
+const SAMSUNG_HOME_APP_ID = "com.samsung.tv.csfs";
 const HIDDEN_GRACE_MS = 250; // non-Frame: Samsung Home appears almost at once
 const FRAME_HIDDEN_GRACE_MS = 1500; // Frame: give Art Mode time to report before reclaiming
 const WATCHED_HIDDEN_GRACE_MS = 1500; // non-Frame: an app can briefly report invisible during transitions
@@ -712,11 +713,28 @@ function recheck(candidate: LaunchCandidate, cb: () => void) {
     }
   });
 }
+// A hidden launcher alone is not enough: it is also hidden the moment an app opens. The TV's
+// local API exposes Samsung Home as a foreground app, so require that positive signal before a
+// non-boot reclaim. If the TV does not report it, apps simply stay open instead of bouncing.
 function launchSelf(why: string) {
-  if (why !== "boot" && !watcherRelaunchEnabled()) {
+  if (why === "boot") {
+    launchSelfReady(why);
+    return;
+  }
+  if (!watcherRelaunchEnabled()) {
     record("disabled", why);
     return;
   }
+  appStatus(SAMSUNG_HOME_APP_ID, function (home) {
+    if (!home || !home.visible) {
+      record("not-home", why);
+      block("Samsung Home is not foreground");
+      return;
+    }
+    launchSelfReady(why);
+  });
+}
+function launchSelfReady(why: string) {
   if (pending || state.leaving || stopped || !permitted()) {
     return;
   }
