@@ -247,6 +247,8 @@ test("watcher follows host visibility rather than the wrapper identity", async (
   watcher.request("/watch?id=" + host);
   await watcher.tick();
   assert.equal(watcher.request("/").seen, true);
+  watcher.advance(10001); // let the app-opening handoff settle first
+  await watcher.tick();
   watcher.statuses[host].visible = false;
   await watcher.tick();
   assert.deepEqual(watcher.launches, [], "grace period prevents immediate relaunch");

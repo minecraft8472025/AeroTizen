@@ -54,6 +54,7 @@ interface WatcherState {
     launchCalls: number;
     history: { at: number; kind: string; detail: string }[];
   };
+  handoffAt: number;
   heartbeats: number;
   hiddenSince: number;
   last: string | null;
@@ -243,6 +244,7 @@ const state: WatcherState = {
   selfVisible: null,
   hiddenSince: 0,
   watchedHiddenSince: 0,
+  handoffAt: 0,
   watchAt: 0,
   lastLaunch: 0,
   last: null,
@@ -300,6 +302,7 @@ function resetHiddenTiming() {
   state.watchedHiddenSince = 0;
   state.watchedStoppedSince = 0;
   state.selfVisible = null;
+  state.handoffAt = 0;
   state.watchAt = Date.now();
 }
 function resetTracking() {
@@ -816,16 +819,26 @@ function tick() {
           done();
           return;
         }
+        // An app we just launched can report itself visible for a moment while the TV is
+        // switching. Treat that early hide as handoff noise, not a Home press, or apps such
+        // as Netflix and the fireplace video get pulled straight back to the launcher.
+        const handoffSettling = Date.now() - state.handoffAt < WATCH_COVER_GRACE_MS;
         if (watched.visible) {
           state.seen = true;
           state.watchedHiddenSince = 0;
         } else if (state.seen) {
-          if (!state.watchedHiddenSince) {
-            state.watchedHiddenSince = Date.now();
-          }
-          const grace = isFrame() ? FRAME_HIDDEN_GRACE_MS : WATCHED_HIDDEN_GRACE_MS;
-          if (Date.now() - state.watchedHiddenSince >= grace) {
-            launchSelf("home pressed in " + id);
+          if (handoffSettling) {
+            record("handoff", id + " briefly hidden during launch");
+            state.seen = false;
+            state.watchedHiddenSince = 0;
+          } else {
+            if (!state.watchedHiddenSince) {
+              state.watchedHiddenSince = Date.now();
+            }
+            const grace = isFrame() ? FRAME_HIDDEN_GRACE_MS : WATCHED_HIDDEN_GRACE_MS;
+            if (Date.now() - state.watchedHiddenSince >= grace) {
+              launchSelf("home pressed in " + id);
+            }
           }
         } else if (watched.running) {
           state.watchedRan = true;
@@ -870,9 +883,13 @@ function tick() {
         done();
         return;
       }
+      // A recent app handoff is not a Home press, even when the TV reports no visible
+      // app. Without this guard the generic reclaim fires as soon as Netflix or the
+      // fireplace video covers the launcher and bounces straight back to AeroTizen.
+      const recentHandoff = Date.now() - state.handoffAt < WATCH_COVER_GRACE_MS;
       // A failed status reads as "not running" except on Frame TVs, where any gap blocks a
       // relaunch. The TV's API can stall for seconds while Samsung Home loads.
-      if ((result.complete || !isFrame()) && !standAside(result)) {
+      if (!recentHandoff && (result.complete || !isFrame()) && !standAside(result)) {
         launchSelf("covered without an app");
       }
       // Scans that hit their deadline are logged by snapshot() as scan-timeout.
@@ -1142,6 +1159,7 @@ export const onStart = () => {
       state.leaving = false;
       resetWatchedTiming();
       state.watchAt = Date.now();
+      state.handoffAt = state.watchAt;
     } else if (pathname === "/apps") {
       invalidate("app inventory changed");
       state.apps = (typeof query.ids === "string" ? query.ids : "").split(",").filter(Boolean);

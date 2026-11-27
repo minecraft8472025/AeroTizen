@@ -486,10 +486,10 @@ test("watched app disappearance needs debounce and the same double Art guard", (
   h.control("/watch?id=AppA");
   h.advance(4500);
   assert.equal(h.state().seen, true);
-  h.statuses.set("AppA", { running: true, visible: false });
-  h.advance(1799);
+  h.advance(5500); // let the launch handoff settle before treating a hide as Home
   assert.equal(h.artReplies.length, 0);
-  h.advance(1);
+  h.statuses.set("AppA", { running: true, visible: false });
+  h.advance(1800);
   assert.equal(h.artReplies.length, 1);
   passFirst(h);
   h.answerArt("off");
@@ -574,11 +574,26 @@ test("non-Frame TVs return from a watched app without the Frame debounce", () =>
   h.statuses.set(SELF, { running: true, visible: false });
   h.control("/apps?ids=AppA");
   h.control("/watch?id=AppA");
-  h.advance(600);
+  h.advance(10000); // the handoff has settled
   assert.equal(h.state().seen, true);
   h.statuses.set("AppA", { running: true, visible: false });
   h.advance(1800);
   assert.equal(h.launches.length, 2);
+});
+
+test("a visibility blip while an app opens does not bounce back to the launcher", () => {
+  const h = harness({ capability: false });
+  h.api.onStart();
+  h.advance(8000);
+  h.statuses.set("AppA", { running: true, visible: true });
+  h.statuses.set(SELF, { running: true, visible: false });
+  h.control("/apps?ids=AppA");
+  h.control("/watch?id=AppA");
+  h.advance(600);
+  h.statuses.set("AppA", { running: true, visible: false });
+  h.advance(1800);
+  assert.equal(h.launches.length, 1, "the launcher stays out of the way during the handoff");
+  assert.ok(h.state().guard.history.some((item) => item.kind === "handoff"));
 });
 
 test("apps already running when the inventory arrives are not mistaken for a new app", () => {
@@ -726,6 +741,7 @@ test("an unseen watched app hands Home over to an app that reports visible", () 
   assert.equal(h.state().watched, "AppB");
   assert.equal(h.state().seen, true);
   assert.equal(h.launches.length, 1);
+  h.advance(3000); // the original handoff has settled by now
   h.statuses.set("AppB", { running: true, visible: false }); // Home pressed in AppB
   h.advance(1800);
   assert.equal(h.launches.length, 2);
