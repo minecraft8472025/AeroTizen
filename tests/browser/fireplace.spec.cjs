@@ -58,7 +58,7 @@ test("Fireplace remote controls update volume and tear down audio on close", asy
   await expect(overlay).toHaveAttribute("aria-modal", "true");
   await expect(fire).toBeVisible();
   await expect(fire).toHaveAttribute("aria-hidden", "true");
-  await expect(fire).toHaveAttribute("src", "./assets/fireplace/fire.webp");
+  await expect(fire).toHaveAttribute("src", "./assets/fireplace/fire.gif");
   await expect.poll(() => fire.evaluate((image) => image.complete && image.naturalWidth)).toBeGreaterThan(0);
   await expect(overlay.getByRole("button", { name: "Close" })).toBeVisible();
   await expect(overlay.getByText("▲ ▼ Volume · Enter / Back Close")).toBeVisible();

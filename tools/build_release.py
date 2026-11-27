@@ -85,7 +85,7 @@ def build_launcher(root, output, tag=None):
         files.extend((launcher / directory).rglob(f"*{suffix}"))
     files.extend(path for path in (launcher / "fonts").rglob("*") if path.is_file())
     fireplace = launcher / "assets/fireplace"
-    files.extend(fireplace / name for name in ("fire.webp", "CREDITS.md", "MANIFEST.json", "LICENSE.txt"))
+    files.extend(fireplace / name for name in ("fire.gif", "CREDITS.md", "MANIFEST.json", "LICENSE.txt"))
     html = (launcher / "index.html").read_text(encoding="utf-8")
     if 'id="weather-photo-root"' in html:
         # The bundled wallpaper view loads these local scenes. Keep their provenance

@@ -1,18 +1,15 @@
 {
-  "asset": "fire.webp",
-  "sha256": "54c0d6db7a4a5974593ab6f9db57f0e6c973b0bd3a79896ec93b5b6cfc5705d7",
+  "asset": "fire.gif",
+  "sha256": "0fa07a2967f1ea5683632cad6258ba34101fd955366dbc745040d286e45afb51",
   "source": {
-    "title": "Fire looped 2",
-    "page": "https://commons.wikimedia.org/wiki/File:Fire_looped_2.gif",
-    "file": "https://upload.wikimedia.org/wikipedia/commons/8/81/Fire_looped_2.gif",
-    "author": "Frank Vincentz (photograph), Jahobr (looped GIF)",
-    "licence": "CC BY-SA 3.0"
+    "url": "https://www.icegif.com/wp-content/uploads/2022/12/icegif-1178.gif"
   },
-  "derivative": {
-    "format": "animated WebP",
-    "width": 1280,
-    "height": 720,
-    "fps": 15,
-    "changes": "Transcoded from the 25 fps source GIF and reduced to 15 fps."
+  "format": {
+    "type": "animated GIF",
+    "width": 640,
+    "height": 352,
+    "frames": 98,
+    "durationSeconds": 9.09,
+    "changes": "None; original GIF bundled unchanged."
   }
 }

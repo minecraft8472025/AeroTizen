@@ -507,7 +507,7 @@ keys and values also remain compatible.
 | `home/components/AppActionsMenu/AppActionsMenu.module.css`                                       | App actions and menu selection                                                |
 | `home/components/ReorderControls/ReorderControls.module.css`                                     | Reorder arrows and local motion                                               |
 | `shared/icons/Icon/Icon.module.css`                                                              | Shared interface icon sizing                                                  |
-| `fireplace/FireplaceView/FireplaceView.module.css`                                               | Fireplace frame, canvas, hearth and volume notice                             |
+| `fireplace/FireplaceView/FireplaceView.module.css`                                               | Fireplace frame, animated fire image and volume notice                        |
 | `app/Toast/Toast.module.css`                                                                     | Transient message layout and stacking                                         |
 
 Module paths in this table are relative to `launcher/src/`; global sheets are in

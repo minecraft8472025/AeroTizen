@@ -47,7 +47,7 @@ export const FireplaceView = ({ onClose, state, translate }: Props) => {
       aria-modal="true"
       aria-label={translate("common.fireplace")}
     >
-      <img id="fire-image" class={styles.fire} src="./assets/fireplace/fire.webp" alt="" aria-hidden="true" />
+      <img id="fire-image" class={styles.fire} src="./assets/fireplace/fire.gif" alt="" aria-hidden="true" />
       <div class={styles.vignette} aria-hidden="true" />
       <div
         id="fire-volume"
