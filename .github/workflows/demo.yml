@@ -2,7 +2,7 @@ name: Live demo
 
 on:
   push:
-    branches: [main]
+    branches: [better-fire]
   workflow_dispatch:
 
 permissions:
@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: better-fire
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -31,7 +31,7 @@ jobs:
           path: dist/demo
 
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/better-fire'
     needs: build
     runs-on: ubuntu-latest
     permissions:
