@@ -46,3 +46,15 @@ test("Stage reports that WebGL is unavailable when the TV cannot create a WebGL 
   expect(reportWebGL).not.toHaveBeenCalledWith(true);
   getContext.mockRestore();
 });
+
+test("Hokie waves use the maroon and orange palette", () => {
+  const scene = SCENES.find(({ id }) => id === "hokie-waves")!;
+  const webGL: BackgroundGraphics = { ...createStore(true), check: vi.fn() };
+  const { container } = render(<BackgroundSceneView scene={scene} speed={1} webGL={webGL} reportWebGL={vi.fn()} />);
+  expect(container.querySelector('[data-background-wave="back"] path')?.getAttribute("fill")).toBe(
+    "rgba(134,31,65,.42)",
+  );
+  expect(container.querySelector('[data-background-wave="front"] path')?.getAttribute("fill")).toBe(
+    "rgba(229,117,31,.38)",
+  );
+});

@@ -58,9 +58,15 @@ export const BackgroundSceneView = ({ scene, speed, webGL, reportWebGL, performa
         </>
       );
     case "waves":
-      return <WaveBackground speed={speed} performanceMode={performanceMode} />;
+      return <WaveBackground speed={speed} performanceMode={performanceMode} palette={scene.palette} />;
     case "stars":
-      return performanceMode ? null : <WebGLParticleCanvas kind="stars" speed={speed} reportWebGL={reportWebGL} />;
+      return performanceMode ? null : (
+        <WebGLParticleCanvas
+          kind={scene.palette === "hokie" ? "hokie-stars" : "stars"}
+          speed={speed}
+          reportWebGL={reportWebGL}
+        />
+      );
     case "particles":
       return performanceMode ? null : <WebGLParticleCanvas kind={scene.kind} speed={speed} reportWebGL={reportWebGL} />;
     case "stage":

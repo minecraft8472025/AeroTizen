@@ -115,12 +115,22 @@ test("Stage is an animated WebGL background with a pure CSS fallback and a still
   assertPureCss(swatch, "Stage swatch");
 });
 
-test("Hokie is an animated maroon and orange background with a still swatch", () => {
-  const hokie = SCENES.find((scene) => scene.id === "hokie");
-  assert.ok(hokie, "Hokie is listed");
-  assert.equal(hokie.anim, "blobs");
-  assertPureCss(hokie.base, "Hokie base");
-  const swatch = preview(hokie);
-  assert.notEqual(swatch, hokie.base, "the swatch shows a still frame, not only the base");
-  assertPureCss(swatch, "Hokie swatch");
+test("Hokie variants keep their animation types and have still swatches", () => {
+  const variants = {
+    hokie: "blobs",
+    "hokie-stars": "stars",
+    "hokie-snow": "particles",
+    "hokie-rain": "particles",
+    "hokie-waves": "waves",
+  };
+  for (const [id, anim] of Object.entries(variants)) {
+    const scene = SCENES.find((candidate) => candidate.id === id);
+    assert.ok(scene, `${id} is listed`);
+    assert.equal(scene.anim, anim, `${id} keeps its animation`);
+    assert.equal(needsWebGL(scene), anim === "stars" || anim === "particles", `${id} WebGL requirement`);
+    assertPureCss(scene.base, `${id} base`);
+    const swatch = preview(scene);
+    assert.notEqual(swatch, scene.base, `${id} swatch shows a still frame, not only the base`);
+    assertPureCss(swatch, `${id} swatch`);
+  }
 });

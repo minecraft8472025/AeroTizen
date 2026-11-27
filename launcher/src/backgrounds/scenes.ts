@@ -83,6 +83,30 @@ export const SCENES: readonly BackgroundScene[] = [
     base: "radial-gradient(1400px 900px at 85% 120%, #5a1029 0%, rgba(90,16,41,0) 60%), #150409",
     blobs: ["rgba(229,117,31,.45)", "rgba(134,31,65,.55)", "rgba(255,157,92,.28)", "rgba(90,16,41,.50)"],
   },
+  {
+    id: "hokie-stars",
+    anim: "stars",
+    palette: "hokie",
+    base: "radial-gradient(1400px 900px at 70% -10%, #3a0a1c 0%, rgba(58,10,28,0) 60%), #150409",
+  },
+  {
+    id: "hokie-snow",
+    anim: "particles",
+    kind: "hokie-snow",
+    base: "radial-gradient(1400px 900px at 50% 120%, #5a1029 0%, rgba(90,16,41,0) 60%), #150409",
+  },
+  {
+    id: "hokie-rain",
+    anim: "particles",
+    kind: "hokie-rain",
+    base: "linear-gradient(180deg, #150409 0%, #2a0a14 100%)",
+  },
+  {
+    id: "hokie-waves",
+    anim: "waves",
+    palette: "hokie",
+    base: "linear-gradient(180deg, #150409 0%, #3a0a1c 100%)",
+  },
   { id: "starfield", anim: "stars", base: "#02030a" },
   {
     id: "snow",
@@ -220,7 +244,9 @@ const STAGE_SWATCH =
 // Small static rendering used for the Settings swatches.
 const PARTICLE_PREVIEW = {
   snow: "#fff",
+  "hokie-snow": "#ffdcc4",
   rain: "rgba(170,200,255,.8)",
+  "hokie-rain": "rgba(255,157,92,.85)",
   fireflies: "#d9ff7a",
 } as const;
 
@@ -237,10 +263,22 @@ export const preview = (b: BackgroundScene) => {
     );
   }
   if (b.anim === "stars") {
+    const dot = b.palette === "hokie" ? "#ffdcc4" : "#fff";
+    const soft = b.palette === "hokie" ? "rgba(229,117,31,.9)" : "#cfe0ff";
     return (
-      "radial-gradient(1px 1px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 70% 60%, #fff, transparent)," +
-      "radial-gradient(1.5px 1.5px at 40% 80%, #cfe0ff, transparent), radial-gradient(1px 1px at 85% 20%, #fff, transparent)," +
-      "radial-gradient(1px 1px at 55% 40%, #fff, transparent), " +
+      "radial-gradient(1px 1px at 20% 30%, " +
+      dot +
+      ", transparent), radial-gradient(1px 1px at 70% 60%, " +
+      dot +
+      ", transparent)," +
+      "radial-gradient(1.5px 1.5px at 40% 80%, " +
+      soft +
+      ", transparent), radial-gradient(1px 1px at 85% 20%, " +
+      dot +
+      ", transparent)," +
+      "radial-gradient(1px 1px at 55% 40%, " +
+      dot +
+      ", transparent), " +
       b.base
     );
   }
@@ -264,7 +302,11 @@ export const preview = (b: BackgroundScene) => {
     return STAGE_SWATCH + ", " + b.base;
   }
   if (b.anim === "waves") {
-    return "linear-gradient(180deg, transparent 60%, rgba(40,140,200,.35) 60%, rgba(10,60,100,.6) 100%)," + b.base;
+    const crest =
+      b.palette === "hokie"
+        ? "linear-gradient(180deg, transparent 60%, rgba(229,117,31,.35) 60%, rgba(134,31,65,.6) 100%)"
+        : "linear-gradient(180deg, transparent 60%, rgba(40,140,200,.35) 60%, rgba(10,60,100,.6) 100%)";
+    return crest + "," + b.base;
   }
   return b.base;
 };

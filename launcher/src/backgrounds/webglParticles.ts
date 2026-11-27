@@ -13,14 +13,20 @@ import { compileShader, getWebGL } from "./webgl";
 const STAR_ALPHA = "0.35 + 0.65 * abs(sin(u_time * a_style.y + a_style.x))";
 const ALPHA_BY_SCENE = {
   stars: STAR_ALPHA,
+  "hokie-stars": STAR_ALPHA,
   nebula: STAR_ALPHA,
   snow: "0.45 + a_style.y * 0.55",
+  "hokie-snow": "0.45 + a_style.y * 0.55",
   fireflies: "0.15 + 0.85 * sin(u_time * 0.9 + a_style.x) * sin(u_time * 0.9 + a_style.x)",
 };
 
-export type WebGLParticleKind = keyof typeof ALPHA_BY_SCENE | "rain";
+export type WebGLParticleKind = keyof typeof ALPHA_BY_SCENE | "rain" | "hokie-rain";
+type SpriteKind = Exclude<WebGLParticleKind, "rain" | "hokie-rain">;
+type RainKind = Extract<WebGLParticleKind, "rain" | "hokie-rain">;
 
-const vertexSource = (kind: Exclude<WebGLParticleKind, "rain">) => `
+const isRainKind = (kind: WebGLParticleKind): kind is RainKind => kind === "rain" || kind === "hokie-rain";
+
+const vertexSource = (kind: SpriteKind) => `
 attribute vec2 a_position;
 attribute vec2 a_uv;
 attribute vec2 a_style;
@@ -61,7 +67,12 @@ void main() {
 }
 `;
 
-const RAIN_FRAGMENT = `
+const RAIN_COLOURS: Record<RainKind, string> = {
+  rain: "190.0, 215.0, 255.0",
+  "hokie-rain": "255.0, 157.0, 92.0",
+};
+
+const rainFragment = (kind: RainKind) => `
 precision mediump float;
 varying mediump vec2 v_point;
 varying mediump vec3 v_streak;
@@ -69,7 +80,7 @@ void main() {
   vec2 offset = v_point - vec2(clamp(v_point.x, 0.0, v_streak.x), 0.0);
   float coverage = clamp(v_streak.y + 0.5 - length(offset), 0.0, 1.0);
   float alpha = v_streak.z * coverage;
-  gl_FragColor = vec4(vec3(190.0, 215.0, 255.0) / 255.0 * alpha, alpha);
+  gl_FragColor = vec4(vec3(${RAIN_COLOURS[kind]}) / 255.0 * alpha, alpha);
 }
 `;
 
@@ -121,13 +132,13 @@ export const startWebGLParticles = (canvas: HTMLCanvasElement, kind: WebGLPartic
     return;
   }
 
-  const rain = kind === "rain";
+  const rain = isRainKind(kind);
   const stride = rain ? RAIN_STRIDE : SPRITE_STRIDE;
   const program = gl.createProgram();
   const vertices = gl.createBuffer();
   const texture = rain ? null : gl.createTexture();
   const vertex = compileShader(gl, gl.VERTEX_SHADER, rain ? RAIN_VERTEX : vertexSource(kind));
-  const fragment = compileShader(gl, gl.FRAGMENT_SHADER, rain ? RAIN_FRAGMENT : FRAGMENT_SHADER);
+  const fragment = compileShader(gl, gl.FRAGMENT_SHADER, rain ? rainFragment(kind) : FRAGMENT_SHADER);
   const release = () => {
     gl.deleteBuffer(vertices);
     gl.deleteTexture(texture);
@@ -150,8 +161,8 @@ export const startWebGLParticles = (canvas: HTMLCanvasElement, kind: WebGLPartic
   }
 
   const document = canvas.ownerDocument;
-  const isParticle = kind !== "stars" && kind !== "nebula";
-  const { sprites, advance } = isParticle ? createParticles(kind) : createStars(kind === "stars");
+  const star = kind === "stars" || kind === "hokie-stars" || kind === "nebula";
+  const { sprites, advance } = star ? createStars(kind !== "nebula") : createParticles(kind);
   const vertexCount = sprites.length * CORNERS.length;
   const data = new Float32Array(vertexCount * stride);
   let offset = 0;
@@ -187,8 +198,9 @@ export const startWebGLParticles = (canvas: HTMLCanvasElement, kind: WebGLPartic
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
     try {
-      const glow =
-        kind === "snow" || kind === "fireflies" ? createParticleGlow(document, kind) : createStarGlow(document);
+      const glow = star
+        ? createStarGlow(document, kind === "hokie-stars")
+        : createParticleGlow(document, kind as "snow" | "hokie-snow" | "fireflies");
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, glow);
     } catch {
       release();

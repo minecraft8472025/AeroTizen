@@ -62,13 +62,24 @@ export const runParticleLoop = (document: Document, speed: number, step: (dt: nu
   };
 };
 
-export const createStarGlow = (document: Document) =>
-  sprite(document, 32, [
-    [0, "rgba(255,255,255,1)"],
-    [0.12, "rgba(235,242,255,.9)"],
-    [0.35, "rgba(170,200,255,.25)"],
-    [1, "rgba(170,200,255,0)"],
-  ]);
+export const createStarGlow = (document: Document, hokie = false) =>
+  sprite(
+    document,
+    32,
+    hokie
+      ? [
+          [0, "rgba(255,242,232,1)"],
+          [0.12, "rgba(255,190,140,.92)"],
+          [0.35, "rgba(229,117,31,.28)"],
+          [1, "rgba(229,117,31,0)"],
+        ]
+      : [
+          [0, "rgba(255,255,255,1)"],
+          [0.12, "rgba(235,242,255,.9)"],
+          [0.35, "rgba(170,200,255,.25)"],
+          [1, "rgba(170,200,255,0)"],
+        ],
+  );
 
 export const createStars = (dense: boolean) => {
   const stars: { x: number; y: number; size: number; v: number; p: number; tw: number }[] = [];
@@ -96,13 +107,21 @@ export const createStars = (dense: boolean) => {
   return { sprites: stars, advance };
 };
 
-export const createParticleGlow = (document: Document, kind: Exclude<ParticleKind, "rain">) => {
+export const createParticleGlow = (document: Document, kind: Exclude<ParticleKind, "rain" | "hokie-rain">) => {
   if (kind === "snow") {
     return sprite(document, 64, [
       [0, "rgba(255,255,255,1)"],
       [0.25, "rgba(255,255,255,.85)"],
       [0.6, "rgba(255,255,255,.18)"],
       [1, "rgba(255,255,255,0)"],
+    ]);
+  }
+  if (kind === "hokie-snow") {
+    return sprite(document, 64, [
+      [0, "rgba(255,242,232,1)"],
+      [0.25, "rgba(255,220,200,.88)"],
+      [0.6, "rgba(255,157,92,.2)"],
+      [1, "rgba(255,157,92,0)"],
     ]);
   }
   return sprite(document, 96, [
@@ -116,6 +135,8 @@ export const createParticleGlow = (document: Document, kind: Exclude<ParticleKin
 // Rain falls in streaks. Snow drifts with depth and fireflies wander.
 export const createParticles = (kind: ParticleKind) => {
   const ps: Particle[] = [];
+  const snow = kind === "snow" || kind === "hokie-snow";
+  const rain = kind === "rain" || kind === "hokie-rain";
   const n = kind === "fireflies" ? 70 : 130;
   function spawn(index: number, fromTop: boolean) {
     if (!ps[index]) {
@@ -125,11 +146,11 @@ export const createParticles = (kind: ParticleKind) => {
     p.d = Math.random();
     p.x = Math.random() * W;
     p.y = fromTop ? -40 : Math.random() * H;
-    if (kind === "snow") {
+    if (snow) {
       p.size = 6 + p.d * p.d * 28;
       p.vy = 0.8 + p.d * 2.6;
       p.vx = (Math.random() - 0.5) * 0.6;
-    } else if (kind === "rain") {
+    } else if (rain) {
       const height = 18 + p.d * 38;
       p.vy = 18 + p.d * 16;
       p.vx = -2.5 - p.d * 2;
@@ -162,7 +183,7 @@ export const createParticles = (kind: ParticleKind) => {
         p.vx *= 0.97;
         p.vy *= 0.97;
       }
-      p.x += (p.vx + (kind === "snow" ? Math.sin(t * 1.5 + p.ph) * 0.6 : 0)) * dt;
+      p.x += (p.vx + (snow ? Math.sin(t * 1.5 + p.ph) * 0.6 : 0)) * dt;
       p.y += p.vy * dt;
       if (p.y > H + 60 || p.x < -80 || p.x > W + 80 || (kind === "fireflies" && p.y < -80)) {
         spawn(i, kind !== "fireflies");

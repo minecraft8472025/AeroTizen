@@ -7,12 +7,13 @@ export type BackgroundPreview =
   | { readonly kind: "solid"; readonly colour: string }
   | { readonly kind: "gradient"; readonly gradient: CustomGradient };
 
-export type ParticleKind = "snow" | "rain" | "fireflies";
+export type ParticleKind = "snow" | "rain" | "fireflies" | "hokie-snow" | "hokie-rain";
 
 export type BackgroundScene = Background & { readonly base: string; readonly gradient?: CustomGradient } & (
     | { readonly anim?: undefined }
     | { readonly anim: "blobs"; readonly blobs: readonly string[]; readonly slow?: boolean; readonly stars?: boolean }
-    | { readonly anim: "stars" | "waves" }
+    | { readonly anim: "stars"; readonly palette?: "hokie" }
+    | { readonly anim: "waves"; readonly palette?: "hokie" }
     | { readonly anim: "particles"; readonly kind: ParticleKind }
     | { readonly anim: "stage" }
   );
